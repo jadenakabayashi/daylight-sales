@@ -1,0 +1,10 @@
+{
+  "name": "Content Partnerships Journey Builder",
+  "id": "daylight-content-partnerships-journey-builder",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

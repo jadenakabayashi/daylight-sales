@@ -1,0 +1,854 @@
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --radius: 0.6rem;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sales: #2a9d90;
+    --sales-bg: #ecf7f5;
+    --adops: #0da2e7;
+    --adops-bg: #eaf7ff;
+    --finance: #64748b;
+    --finance-bg: #f1f5f9;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #020817;
+      --bg-subtle: #0a1220;
+      --card-bg: #0b1524;
+      --fg: #f8fafc;
+      --fg-muted: #94a3b8;
+      --muted-bg: #1e293b;
+      --border: #1e293b;
+      --primary: #2f8fd6;
+      --primary-fg: #ffffff;
+      --accent: #3abcf8;
+      --destructive: #f87171;
+      --destructive-bg: #2a1416;
+      --destructive-border: #4c1d1d;
+      --sales: #2eb88a;
+      --sales-bg: #0f2620;
+      --adops: #3abcf8;
+      --adops-bg: #0d2536;
+      --finance: #94a3b8;
+      --finance-bg: #1e293b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #020817;
+    --bg-subtle: #0a1220;
+    --card-bg: #0b1524;
+    --fg: #f8fafc;
+    --fg-muted: #94a3b8;
+    --muted-bg: #1e293b;
+    --border: #1e293b;
+    --primary: #2f8fd6;
+    --primary-fg: #ffffff;
+    --accent: #3abcf8;
+    --destructive: #f87171;
+    --destructive-bg: #2a1416;
+    --destructive-border: #4c1d1d;
+    --sales: #2eb88a;
+    --sales-bg: #0f2620;
+    --adops: #3abcf8;
+    --adops-bg: #0d2536;
+    --finance: #94a3b8;
+    --finance-bg: #1e293b;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --sales: #2a9d90;
+    --sales-bg: #ecf7f5;
+    --adops: #0da2e7;
+    --adops-bg: #eaf7ff;
+    --finance: #64748b;
+    --finance-bg: #f1f5f9;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); }
+
+  .page {
+    font-family: var(--font-sans);
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    line-height: 1.55;
+  }
+
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* ---------- Header ---------- */
+  .hero { margin-bottom: 4rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 2.6rem;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.1rem;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 1.1rem;
+    color: var(--fg-muted);
+    max-width: 62ch;
+    margin: 0 0 1.8rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    font-size: 0.82rem;
+    color: var(--fg-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.tool { background: var(--muted-bg); border: 1.5px solid var(--fg-muted); }
+  .dot.friction { background: var(--destructive); }
+  .dot.source { background: var(--accent); }
+  .dot.sales { background: var(--sales); }
+  .dot.adops { background: var(--adops); }
+  .dot.split { background: linear-gradient(135deg, var(--sales) 50%, var(--adops) 50%); }
+
+  /* ---------- Ownership tags ---------- */
+  .owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.7rem;
+  }
+  .owner::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .owner.owner-sales { background: var(--sales-bg); color: var(--sales); }
+  .owner.owner-sales::before { background: var(--sales); }
+  .owner.owner-adops { background: var(--adops-bg); color: var(--adops); }
+  .owner.owner-adops::before { background: var(--adops); }
+  .owner.owner-finance { background: var(--finance-bg); color: var(--finance); }
+  .owner.owner-finance::before { background: var(--finance); }
+  .owner.owner-split {
+    background: linear-gradient(to right, var(--sales-bg) 50%, var(--adops-bg) 50%);
+    color: var(--fg);
+  }
+  .owner.owner-split::before { background: linear-gradient(135deg, var(--sales) 50%, var(--adops) 50%); }
+
+  /* ---------- Nav-split callout (Marly sidebar) ---------- */
+  .nav-split {
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) 1fr;
+    gap: 1.6rem;
+    align-items: start;
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    margin: 0 0 4rem;
+  }
+  .nav-split .browser-chrome { margin: 0; }
+  .nav-split-copy h3 { margin: 0 0 0.6rem; font-size: 1.15rem; }
+  .nav-split-copy p { margin: 0 0 0.8rem; font-size: 0.92rem; color: var(--fg-muted); max-width: 56ch; }
+  .nav-split-copy p:last-child { margin-bottom: 0; }
+  .nav-split-copy .quote { font-style: italic; color: var(--fg); }
+  @media (max-width: 620px) {
+    .nav-split { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Bob/Vault quadrant ownership diagram ---------- */
+  .quadrant-wrap {
+    margin: 1.4rem 0 1.1rem;
+    padding: 1.1rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+  }
+  .quadrant-wrap > p.parallel-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0 0 0.9rem;
+  }
+  .quadrant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+  .quad-cell {
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0.8rem 0.9rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+  }
+  .quad-cell.owner-sales { border-color: var(--sales); }
+  .quad-cell.owner-adops { border-color: var(--adops); }
+  .quad-cell.owner-unknown { border-style: dashed; }
+  .quad-cell h5 {
+    margin: 0 0 0.3rem;
+    font-size: 0.88rem;
+  }
+  .quad-cell p { margin: 0; font-size: 0.82rem; color: var(--fg-muted); }
+  @media (max-width: 480px) {
+    .quadrant-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Sales-owned ongoing work section ---------- */
+  .sales-ongoing {
+    margin: 5rem 0 4.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+  .sales-ongoing h2 { font-size: 1.7rem; margin: 0 0 0.6rem; letter-spacing: -0.01em; }
+  .sales-ongoing > p.section-dek { color: var(--fg-muted); max-width: 66ch; margin: 0 0 1.6rem; }
+  .sales-ongoing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.6rem;
+  }
+  .sales-ongoing-card {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--sales);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    background: var(--card-bg);
+  }
+  .sales-ongoing-card h4 { margin: 0 0 0.4rem; font-size: 0.98rem; }
+  .sales-ongoing-card p { margin: 0; font-size: 0.86rem; color: var(--fg-muted); }
+
+  /* ---------- Spine / stages ---------- */
+  .stages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .stages::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border) 92%);
+  }
+  .stage {
+    position: relative;
+    padding-left: 3.6rem;
+    margin-bottom: 3.2rem;
+  }
+  .stage-marker {
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 1;
+  }
+  .stage-phase {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0.1rem 0 0.35rem;
+  }
+  .stage h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.7rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .stage p.body { margin: 0 0 0.9rem; max-width: 66ch; }
+  .stage p.body:last-of-type { margin-bottom: 1.1rem; }
+  .stage ul.detail {
+    margin: 0 0 1.1rem;
+    padding-left: 1.15rem;
+    max-width: 64ch;
+  }
+  .stage ul.detail li { margin-bottom: 0.5rem; }
+  .stage ul.detail li::marker { color: var(--fg-muted); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    background: var(--muted-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  .friction {
+    display: flex;
+    gap: 0.7rem;
+    background: var(--destructive-bg);
+    border: 1px solid var(--destructive-border);
+    border-left: 3px solid var(--destructive);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.1rem;
+    max-width: 66ch;
+  }
+  .friction .icon { color: var(--destructive); font-size: 1rem; line-height: 1.5; flex: none; }
+  .friction p { margin: 0; font-size: 0.92rem; }
+  .friction .quote { font-style: italic; color: var(--fg-muted); }
+
+  .shots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    margin: 1.2rem 0 1.1rem;
+  }
+  figure.shot {
+    margin: 0;
+    flex: 1 1 340px;
+    max-width: 420px;
+  }
+  .browser-chrome {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 1px 2px rgba(2, 8, 23, 0.06);
+  }
+  .browser-chrome .bar {
+    display: flex;
+    gap: 5px;
+    padding: 0.55rem 0.7rem;
+    background: var(--muted-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .browser-chrome .bar span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .browser-chrome img { display: block; width: 100%; height: auto; }
+  figure.shot figcaption {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    margin-top: 0.5rem;
+  }
+  figure.shot figcaption .src {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+  }
+
+  .source-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+    border-top: 1px dashed var(--border);
+    padding-top: 0.6rem;
+    margin-top: 0.4rem;
+    display: inline-block;
+  }
+  .source-tag .dot { display: inline-block; margin-right: 0.4rem; vertical-align: middle; }
+
+  /* ---------- Parallel workstream group ---------- */
+  .parallel-wrap {
+    margin: 1.6rem 0 0.3rem;
+    padding: 1.1rem 1.1rem 0.3rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+  }
+  .parallel-wrap > p.parallel-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0 0 0.9rem;
+  }
+  .parallel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .parallel-card h4 {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+  }
+  .parallel-card p { margin: 0; font-size: 0.86rem; color: var(--fg-muted); }
+
+  /* ---------- Gap stage ---------- */
+  .stage-gap .stage-marker {
+    border-style: dashed;
+    color: var(--fg-muted);
+    border-color: var(--border);
+  }
+  .stage-gap h2 { color: var(--fg-muted); }
+  .stage-gap .gap-note {
+    font-size: 0.92rem;
+    color: var(--fg-muted);
+    max-width: 60ch;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+  }
+
+  /* ---------- IO lifecycle module ---------- */
+  .io-lifecycle {
+    margin: 5rem 0 4.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+  .io-lifecycle h2 { font-size: 1.7rem; margin: 0 0 0.6rem; letter-spacing: -0.01em; }
+  .io-lifecycle > p { color: var(--fg-muted); max-width: 66ch; margin: 0 0 2rem; }
+  .io-steps {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    position: relative;
+  }
+  .io-step {
+    padding: 0 0.6rem 0 0;
+    position: relative;
+  }
+  .io-step .rail {
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-bottom: 0.9rem;
+  }
+  .io-step.ghost .rail {
+    background: repeating-linear-gradient(to right, var(--border) 0 6px, transparent 6px 11px);
+  }
+  .io-step .num {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .io-step.ghost .num { color: var(--fg-muted); }
+  .io-step h4 { font-size: 0.92rem; margin: 0 0 0.35rem; }
+  .io-step.ghost h4 { color: var(--fg-muted); }
+  .io-step p { font-size: 0.8rem; color: var(--fg-muted); margin: 0; }
+
+  @media (max-width: 700px) {
+    .io-steps { grid-template-columns: repeat(2, 1fr); gap: 1.4rem 1rem; }
+    h1 { font-size: 2rem; }
+  }
+
+  /* ---------- Naming note + methodology ---------- */
+  .callout {
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  .callout h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+  .callout p { margin: 0 0 0.7rem; font-size: 0.92rem; color: var(--fg-muted); max-width: 68ch; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--muted-bg);
+    padding: 0.05em 0.4em;
+    border-radius: 0.3em;
+  }
+
+  .methodology { border-top: 1px solid var(--border); padding-top: 2rem; }
+  .methodology h3 { font-size: 1.05rem; margin: 0 0 0.9rem; }
+  .methodology ul { margin: 0; padding-left: 1.15rem; }
+  .methodology li { font-size: 0.88rem; color: var(--fg-muted); margin-bottom: 0.55rem; max-width: 66ch; }
+  .methodology li::marker { color: var(--border); }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Daylight Media &middot; Internal &mdash; Current State</p>
+    <h1>The Sales &amp; Ad Ops Journey</h1>
+    <p class="dek">How a podcast ad buy actually moves today &mdash; from an agency's first RFP to a make-good email six months later &mdash; and exactly where the line sits between what Sales owns and what Ad Ops owns, confirmed directly in the two teams' own alignment conversation.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="dot sales"></span>Sales-owned</span>
+      <span class="legend-item"><span class="dot adops"></span>Ad-Ops-owned</span>
+      <span class="legend-item"><span class="dot tool"></span>Tool in use</span>
+      <span class="legend-item"><span class="dot friction"></span>Friction point</span>
+      <span class="legend-item"><span class="dot source"></span>Source</span>
+    </div>
+  </header>
+
+  <div class="nav-split">
+    <figure class="shot" style="max-width:none;">
+      <div class="browser-chrome">
+        <div class="bar"><span></span><span></span><span></span></div>
+        <img loading="lazy" decoding="async" src="{{IMG_MARLY_NAV}}" alt="Marly's left sidebar: a Sales section expanded to show Master List, Fill Rates, Sales Leads, Podcasts, Newsletter Publications, One Sheets, Kits, Ad Plans, Available Inventory, Advertisers, Agencies, Talent, Orders, Active DAI Results, Vetting Contacts, and RFPs, with Ad Ops, Finance, Business, Legal, Reports and Admin/LTS as separate top-level items below it." />
+      </div>
+      <figcaption>Marly's own sidebar &mdash; Sales as one expandable section, Ad Ops as a separate top-level item.</figcaption>
+    </figure>
+    <div class="nav-split-copy">
+      <h3>Before the steps: two teams, two nav trees &mdash; almost</h3>
+      <p>Marly itself models Sales and Ad Ops as separate areas of the tool, which is a useful map for the journey below &mdash; every stage carries a <span class="owner owner-sales" style="margin:0 0.15rem;">Sales</span> or <span class="owner owner-adops" style="margin:0 0.15rem;">Ad Ops</span> tag showing who actually does that work.</p>
+      <p><strong>But the nav doesn't map perfectly onto who does the work.</strong> Ad Plans, Orders, and Vetting Contacts all live inside the "Sales" folder in the sidebar &mdash; yet Ad Ops runs scheduling day to day and owns vetting outright. Brett confirmed this directly when asked where the line actually sits: <span class="quote">"Ad ops is responsible for vetting requests once sales puts together the initial list of shows from the rate card."</span> Nav placement is old information architecture; the tags below follow what the two teams actually said they own, not which folder a page sits in.</p>
+    </div>
+  </div>
+
+  <ol class="stages">
+
+    <li class="stage" id="stage-1">
+      <div class="stage-marker">1</div>
+      <p class="stage-phase">Intake</p>
+      <span class="owner owner-sales">Sales</span>
+      <h2>RFP intake</h2>
+      <p class="body">An agency sends a Request for Proposal: the brand, target demographics, and any campaign specifics &mdash; read type, attribution needs, a target CPM &mdash; usually against a shared brand-brief/submission template.</p>
+      <div class="badges"><span class="badge">Email</span><span class="badge">Brand brief template</span></div>
+      <span class="source-tag"><span class="dot source"></span>Sales &amp; Ad Ops Flow.pdf</span>
+    </li>
+
+    <li class="stage" id="stage-2">
+      <div class="stage-marker">2</div>
+      <p class="stage-phase">Qualify</p>
+      <span class="owner owner-sales">Sales</span>
+      <h2>Rate card filtering</h2>
+      <p class="body">Thomas Mancusi (Sales) confirms this from the seller's side directly: <span class="quote">"sales will do the RFP rate card pulling."</span> The seller narrows the full Rate Card down to what's actually available for this RFP, in a fixed sequence of manual checks:</p>
+      <ul class="detail">
+        <li><strong>Competitive advertiser check</strong> &mdash; pull any show already active with a competing brand. Category exclusivity is earned by 3 embedded spots or 3 months of DAI, and holds for 30 days after the last ad airs.</li>
+        <li><strong>Previous vetting check</strong> &mdash; drop any show that has already declined this brand before.</li>
+        <li><strong>Criteria filter</strong> &mdash; narrow to shows matching the RFP's demographics and requirements.</li>
+      </ul>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Exclusivity windows and episodic category conflicts are tracked by memory and spreadsheet, not enforced by the system. <span class="quote">"No way to track this."</span></p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_RATE_CARD}}" alt="The Daylight Media Roster spreadsheet: one row per podcast with columns for hosts, genre, description, show one sheet, Apple RSS and YouTube links, demo split, average consumption per episode, net CPM, net rate, preferred code, RSS/YouTube/Spotify split, position, current advertisers, and attribution vendor." />
+          </div>
+          <figcaption>The real Rate Card/Roster this stage filters &mdash; Thomas's alone to edit, updated weekly.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Rate Card / Roster (Excel)</span></div>
+      <span class="source-tag"><span class="dot source"></span>Sales &amp; Ad Ops Flow.pdf &middot; Thomas Mancusi interview</span>
+    </li>
+
+    <li class="stage" id="stage-3">
+      <div class="stage-marker">3</div>
+      <p class="stage-phase">Qualify &mdash; handoff to Ad Ops</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Vetting</h2>
+      <p class="body">Once Sales hands off its filtered show list, Ad Ops takes over: it sends vetting requests for any remaining un-vetted, on-demo shows, then logs the "whys" back onto the Rate Card. This is the first point in the whole journey where Ad Ops touches the deal &mdash; per Brett, directly: <span class="quote">"sales will happen before this. The only thing that'll happen that Adops will interact with in these first few&hellip; is going to be vetting. Adops handles the vetting requests."</span></p>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Vetting</span></div>
+      <span class="source-tag"><span class="dot source"></span>Sales &amp; Ad Ops Flow.pdf &middot; Brett Connaughton interview, Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-4">
+      <div class="stage-marker">4</div>
+      <p class="stage-phase">Propose</p>
+      <span class="owner owner-sales">Sales</span>
+      <h2>Submit &amp; get feedback</h2>
+      <p class="body">If the client supplied their own template, the seller transfers the rate-card data over; if not, the proposal goes out as-is by email. Aaron Hurting does this ~95% of the time &mdash; per Brett, <span class="quote">"half ad ops, half sales assistant"</span> &mdash; adapting the same underlying data to whichever template that specific agency wants (Oxford, RSU, and WPP each have their own). The client comes back with one of three answers: nothing, some shows, or everything.</p>
+      <div class="badges"><span class="badge">Email</span><span class="badge">Client template</span></div>
+      <span class="source-tag"><span class="dot source"></span>Sales &amp; Ad Ops Flow.pdf &middot; Brett Connaughton interview, Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-5">
+      <div class="stage-marker">5</div>
+      <p class="stage-phase">Schedule</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Ad plan &amp; scheduling</h2>
+      <p class="body">Confirmed shows move into the <strong>Ad Plan</strong> &mdash; internally "BOB," Book of Business &mdash; a week-over-week grid inside Marly/QCode/Vault. Every flight week for every show is either <em>Unbooked</em> or filled in with the winning brand and its dollar amount. This is squarely Ad Ops's: <span class="quote">"adops is owning scheduling, right?"</span> &mdash; <span class="quote">"Yep."</span></p>
+      <p class="body">Scheduling itself runs on judgment, not rules the system enforces: a standard buy is 3 spots, 3 weeks apart; the goal is balanced inventory with an even spread across shows; midroll position is rotated so no single advertiser always lands in the same slot; and competing categories (a mattress brand and a sheets brand, say) shouldn't land in the same episode.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Episodic category exclusivity has no system support today. <span class="quote">"Could we flag good or bad choices in BOB based on the RFP?"</span> was raised as an open want, not a built feature.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ADPLAN_WEEKLY}}" alt="Marly/QCode Ad Plan (BOB) screen showing a week-over-week grid of shows, each cell either Unbooked or filled with a brand name and dollar amount." />
+          </div>
+          <figcaption>The BOB grid: one row per flight week, one column per show, booked or open.</figcaption>
+        </figure>
+      </div>
+      <div class="quadrant-wrap">
+        <p class="parallel-label">Same tool, four views, split ownership</p>
+        <div class="quadrant-grid">
+          <div class="quad-cell owner-adops">
+            <h5>Top-left &mdash; Ad Ops</h5>
+            <p>The schedule/ad-plan grid shown above. The only view Ad Ops uses: <span class="quote">"Ad ops won't use anything but really the top left."</span></p>
+          </div>
+          <div class="quad-cell owner-sales">
+            <h5>Top-right &mdash; Sales</h5>
+            <p>Used heavily by Thomas and "Kel." Ad Ops doesn't touch it: <span class="quote">"Adops does not use top right or bottom left&hellip; sales does."</span></p>
+          </div>
+          <div class="quad-cell owner-sales">
+            <h5>Bottom-left &mdash; Sales</h5>
+            <p>The Fill Rate table (spots filled vs. available per episode) in grid form &mdash; Sales-only, same data Ad Ops sees elsewhere as tiles.</p>
+          </div>
+          <div class="quad-cell owner-unknown">
+            <h5>Bottom-right &mdash; open question</h5>
+            <p>Possibly Available Inventory. Brett wasn't sure Sales uses this one either: <span class="quote">"I'm not sure if they do."</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Ad Plan (BOB)</span></div>
+      <span class="source-tag"><span class="dot source"></span>Brett Connaughton interview, Pt.1 &amp; Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-6">
+      <div class="stage-marker">6</div>
+      <p class="stage-phase">Book it &mdash; the biggest time sink</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Order entry ("papering" the IO)</h2>
+      <p class="body">An Insertion Order arrives from the agency in whichever format that agency happens to use: a simple Google Form response, a fully manual email the team has to key in on the host's behalf, or the client's own spreadsheet template. Whatever the format, it resolves to the same shape &mdash; agency/billing contacts, then a line-item table of content type, placement, flight week, show, rate, and total net cost, plus general terms for payment and advertiser ownership.</p>
+      <p class="body">Ad Ops then re-enters all of it into Marly/QCode by hand, order by order: click to book each spot individually &mdash; there's no bulk-select &mdash; then manually key in dates, impressions, spot revenue, and CPM (which auto-calculates), and flag anything that needs client pre-approval. Spot position is assigned by feel, to keep rotation fair across every advertiser on the show.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p><span class="quote">"Order entry &mdash; biggest time suck &mdash; new order."</span> For high-frequency shows, this compounds fast: shifting a full year of a 5-episode-a-week show by two days took one order-entry lead roughly three hours, because the system slows down at 35&ndash;50 edits in a row and every change has to be re-checked by eye.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_IO_TEMPLATE}}" alt="Split screen: the Marly/QCode Ad Plan on the left, and an Insertion Order Google Doc on the right showing agency contact fields and a content/placement/flight week/show/rate/total net cost table." />
+          </div>
+          <figcaption>An incoming IO (right) next to the ad plan it has to be transcribed into (left).</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ORDERS_SPOTS}}" alt="Marly/QCode Orders list on the left, with an order's Spots Booked table and Dynamic Order section open on the right." />
+          </div>
+          <figcaption>Once papered: the order record, its booked spots, and a Dynamic Order slot for make-goods.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Orders</span><span class="badge">Google Docs/Forms (IO)</span><span class="badge">Email</span><span class="badge">Google Drive</span></div>
+
+      <div class="parallel-wrap">
+        <p class="parallel-label">Running alongside order entry, not after it &mdash; all three: Ad Ops</p>
+        <div class="parallel-grid">
+          <div class="parallel-card">
+            <h4>Host &amp; product onboarding</h4>
+            <p>Owned by Mercedes Molina. ~99% of deals offer product to the host, so a brand-specific form (sizes, storefront links, meal picks) has to be collected by hand for each one. A Brand Request Tracker exists in-system but is little-used today.</p>
+          </div>
+          <div class="parallel-card">
+            <h4>Ad-copy trafficking</h4>
+            <p>Owned by Kyle Larson. A Monday "copy audit" filters flights 3 weeks out and marks each scripted or not; a Wednesday follow-up emails every advertiser still missing copy and flips their status. Costs 2&ndash;3 hours/week; a filterable aggregate view and mail-merge send are wanted, not built.</p>
+          </div>
+          <div class="parallel-card">
+            <h4>Pre-approval tracking</h4>
+            <p>A "Client Approval Required" checkbox on the ad-plan row triggers an automated reminder to send the pre-approval &mdash; the one piece of this that's already semi-automated.</p>
+          </div>
+        </div>
+      </div>
+      <span class="source-tag"><span class="dot source"></span>Brett Connaughton interview, Pt.1 &amp; Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-7">
+      <div class="stage-marker">7</div>
+      <p class="stage-phase">As needed</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Revisions &amp; make-goods</h2>
+      <p class="body">Most revisions are tracked by downloading the relevant email thread &mdash; sometimes well over a hundred messages deep &mdash; and appending a note. Shifting a flight today means opening its detail panel, copying out the script/show-notes/revenue/impressions by hand, deleting the flight, and re-entering everything in the new week's slot &mdash; and clients that require minimum separation between reads (e.g. 3 weeks) mean moving <em>one</em> flight on a 35-flight order means manually redoing all of them. The ad-plan grid "starts to lag like crazy" past 10&ndash;15 minutes of this. Underdelivery make-goods use a distinct <strong>Dynamic Order</strong>, which runs against a show's back catalog instead of the original flight, since the original IO itself never gets updated.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Drag-and-drop flight shifting is Ad Ops's single most-requested fix &mdash; <span class="quote">"Vault could do nothing else and just do that and adops would be happy."</span> Separately: cancelling or editing a booked spot deletes the historical record with no audit trail today.</p>
+      </div>
+      <div class="badges"><span class="badge">Email</span><span class="badge">Marly/QCode &mdash; Dynamic Order</span></div>
+      <span class="source-tag"><span class="dot source"></span>Brett Connaughton interview, Pt.1 &amp; Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-8">
+      <div class="stage-marker">8</div>
+      <p class="stage-phase">Deliver</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Delivery reporting &amp; performance tracking</h2>
+      <p class="body"><strong>Downloads</strong> &mdash; audio downloads, streams, and YouTube plays folded into one number so nothing double-counts &mdash; is the metric Daylight actually sells against. Attribution runs through <strong>Podscribe</strong>, the industry-standard tool, on a refresh cycle of roughly 8&ndash;12 hours.</p>
+      <p class="body">Sales-order data and delivery-report data live in two disconnected places today: checking a campaign's health means keeping both tabs open, or exporting delivery numbers to CSV and pasting them into a spreadsheet by hand to compare against what was sold. Underdelivery has one lever today &mdash; a free make-good ad read &mdash; which is a point of real friction with the show side. Haley Chapman owns the daily proactive-reporting schedule that decides which advertiser gets reporting on which day.</p>
+      <p class="body">This is one of the clearest single ownership lines in the whole journey &mdash; per Brett: <span class="quote">"sales doesn't really need visibility into a lot of this&hellip; they'll go in and check as needed."</span> Sales only re-engages reactively, and usually only when a specific show is underperforming and Thomas needs the numbers to make a case for it.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Wanted but not built: delivery totals pulled directly into the order view, and a proactive on-track indicator that flags underdelivery risk before it's already happened.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_PODSCRIBE}}" alt="Podscribe dashboard showing a list of shows with weekly plays, click rate, and score metrics." />
+          </div>
+          <figcaption>Podscribe: the attribution source of truth for downloads and delivery.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_DELIVERY_REPORTS}}" alt="Delivery Reports table inside Marly, showing per-date rows of impressions and downloads by source." />
+          </div>
+          <figcaption>Delivery Reports: a separate tab the team cross-references by hand against Sales &amp; Orders.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Podscribe</span><span class="badge">Marly &mdash; Delivery Reports</span><span class="badge">Google Sheets (DAI tracking)</span></div>
+      <span class="source-tag"><span class="dot source"></span>Brett Connaughton interview, Pt.1 &amp; Pt.2</span>
+    </li>
+
+    <li class="stage" id="stage-9">
+      <div class="stage-marker">9</div>
+      <p class="stage-phase">Report</p>
+      <span class="owner owner-adops">Ad Ops</span>
+      <h2>Client (weekly) reporting</h2>
+      <p class="body">When an agency asks for reporting &mdash; routinely, on a proactive cadence Haley Chapman schedules per client &mdash; the team pulls the current numbers, double-checks nothing looks off, and sends the report back by hand. One-off ad-hoc requests get routed to Ad Ops the same way, whether they originate from the agency or from Sales.</p>
+      <div class="badges"><span class="badge">Email</span><span class="badge">Delivery Reports</span></div>
+      <span class="source-tag"><span class="dot source"></span>Brett Connaughton interview, Pt.2</span>
+    </li>
+
+    <li class="stage stage-gap" id="stage-10">
+      <div class="stage-marker">?</div>
+      <p class="stage-phase">Downstream &mdash; out of scope for this journey</p>
+      <span class="owner owner-finance">Finance</span>
+      <h2>Invoicing &amp; payouts</h2>
+      <p class="gap-note">Finance-side invoicing and show payouts sit outside a Sales/Ad Ops journey, and this pass didn't try to detail them &mdash; but this is no longer an unconfirmed future-state placeholder. Jesse Tracy's (Finance) interview confirms real current-state process here: monthly per-revenue-type invoice generation split across embedded/DAI/social/custom/usage/rewards, manual billing-destination handling, and Bill.com as where sent invoices actually live. See <code>journeys/finance/notes.md</code> for the full reconstruction.</p>
+    </li>
+
+  </ol>
+
+  <section class="sales-ongoing">
+    <span class="owner owner-sales">Sales &mdash; all of it</span>
+    <h2>Running underneath every deal: work that's Sales-only, all the time</h2>
+    <p class="section-dek">None of this is tied to any single RFP or IO &mdash; it's Thomas's standing weekly workload, running continuously beside whatever stage any given deal happens to be in above. Ad Ops has no role in any of it.</p>
+    <div class="sales-ongoing-grid">
+      <div class="sales-ongoing-card">
+        <h4>Rate/CPM decisions</h4>
+        <p>Sets, holds, or raises CPM every Monday from 8-week trailing/forward sellout %, using custom Marly/Molly dashboards. Largely memory-driven.</p>
+      </div>
+      <div class="sales-ongoing-card">
+        <h4>Master List / Rate Card ownership</h4>
+        <p>Thomas solely owns and manually edits the Excel Rate Card weekly. <span class="quote">"No one's allowed to touch it but me."</span></p>
+      </div>
+      <div class="sales-ongoing-card">
+        <h4>Renewal &amp; win-back tracking</h4>
+        <p>Tracks flight end dates and cancellations from memory to time renewal outreach; wants automated cancellation/revenue-shift flags.</p>
+      </div>
+      <div class="sales-ongoing-card">
+        <h4>Prospecting &amp; new-brand pricing</h4>
+        <p>Evaluates new-advertiser fit for a show using average-unit-rate reasoning.</p>
+      </div>
+      <div class="sales-ongoing-card">
+        <h4>Ad-placement doctrine</h4>
+        <p>Thomas's own unwritten IP, taught verbally to hosts: reads &gt;1 min, placed ~8&ndash;10% in, ~12% apart, never past the halfway mark, as isolated "commercial islands."</p>
+      </div>
+    </div>
+    <span class="source-tag"><span class="dot source"></span>Thomas Mancusi (Sales) interview</span>
+  </section>
+
+  <section class="io-lifecycle">
+    <h2>The IO, traced end to end</h2>
+    <p>The user's original request was to map the Insertion Order's own lifecycle across the journey above. Here's what the sources actually support &mdash; and exactly where that trail goes cold.</p>
+    <div class="io-steps">
+      <div class="io-step">
+        <div class="rail"></div>
+        <p class="num">01 &middot; Sales/Agency</p>
+        <h4>Origination</h4>
+        <p>Google Form, manual email, or the client's own template &mdash; agency contacts plus a placement/flight/rate table.</p>
+      </div>
+      <div class="io-step">
+        <div class="rail"></div>
+        <p class="num">02 &middot; Ad Ops</p>
+        <h4>Papering</h4>
+        <p>Manually transcribed into Marly/QCode, order by order, named to match a parallel Drive folder.</p>
+      </div>
+      <div class="io-step">
+        <div class="rail"></div>
+        <p class="num">03 &middot; Ad Ops</p>
+        <h4>Held</h4>
+        <p>Status marked "on hold" so revenue isn't booked before the contract is countersigned.</p>
+      </div>
+      <div class="io-step">
+        <div class="rail"></div>
+        <p class="num">04 &middot; Ad Ops</p>
+        <h4>Revised</h4>
+        <p>Changes tracked against the original email thread, not a living document. T&amp;Cs vary enough to need manual flagging for abnormalities.</p>
+      </div>
+      <div class="io-step">
+        <div class="rail"></div>
+        <p class="num">05 &middot; Ad Ops</p>
+        <h4>Reconciled</h4>
+        <p>Once the flight runs, Podscribe delivery is checked by hand against what the IO promised.</p>
+      </div>
+      <div class="io-step ghost">
+        <div class="rail"></div>
+        <p class="num">06 &middot; Finance, out of scope</p>
+        <h4>Invoiced &amp; paid out</h4>
+        <p>Confirmed current-state via Finance's own interview (see <code>journeys/finance/notes.md</code>) &mdash; just not detailed in this Sales/Ad Ops journey.</p>
+      </div>
+    </div>
+  </section>
+
+  <aside class="callout">
+    <h3>A note on names</h3>
+    <p>More names keep showing up for what may be one system, several, or a front-end/back-end split: Brett says <code>Marley</code> verbally and drops <code>Bolt</code> once with no elaboration; screenshots show a <code>Marly</code> workspace inside an app branded <code>QCode</code> (<code>app.qcodemedia.dev</code>); Thomas (Sales) instead calls the same order/ad-plan system <code>Molly</code>, with <code>Bob</code>/<code>Vault</code> as the ad-plan front end sitting on top of it. Treat Marly/Marley/QCode/Molly/Bob/Vault/Bolt as one unresolved naming cluster &mdash; this journey uses "Marly/QCode" and "Bob/Vault" as the two most-repeated forms, not because either is confirmed as canonical.</p>
+  </aside>
+
+  <footer class="methodology">
+    <h3>Methodology &amp; gaps</h3>
+    <ul>
+      <li>Built from <em>Sales &amp; Ad Ops Flow.pdf</em>/<em>.pptx</em>, both Brett Connaughton (Ad Ops) interviews, the Thomas Mancusi (Sales) interview, <em>Team Roles.pdf</em>, and screenshots pulled from the combined stakeholder-interviews packet plus an earlier pass's screenshots (image bytes preserved; their original source file no longer exists under its old name &mdash; see <code>notes.md</code>).</li>
+      <li>Every ownership tag (Sales / Ad Ops / Finance) above is sourced to a direct interview quote, not inferred from where a feature happens to sit in Marly's own navigation &mdash; the nav-split callout near the top explains why that distinction matters.</li>
+      <li>This covers Sales &rarr; Ad Ops &rarr; Delivery, plus the Sales-only ongoing work that runs alongside it. Legal/contract execution is still outside what the current-state sources confirm; Finance invoicing/payouts is now current-state-confirmed (<code>journeys/finance/notes.md</code>) but deliberately left undetailed here as out of scope.</li>
+      <li>Erin Herting (Sales) and Kyle Larson (Ad Ops) are both named as owning real work in Brett's/Thomas's accounts but haven't been interviewed themselves yet &mdash; their own accounts may add or correct detail.</li>
+    </ul>
+  </footer>
+
+</div>

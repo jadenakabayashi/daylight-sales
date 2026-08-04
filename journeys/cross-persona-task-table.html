@@ -1,0 +1,460 @@
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #020817; --bg-subtle: #0a1220; --card-bg: #0b1524;
+      --fg: #f8fafc; --fg-muted: #94a3b8; --muted-bg: #1e293b; --border: #1e293b;
+      --primary: #2f8fd6; --primary-fg: #ffffff; --accent: #3abcf8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #020817; --bg-subtle: #0a1220; --card-bg: #0b1524;
+    --fg: #f8fafc; --fg-muted: #94a3b8; --muted-bg: #1e293b; --border: #1e293b;
+    --primary: #2f8fd6; --primary-fg: #ffffff; --accent: #3abcf8;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --bg-subtle: #f8fafc; --card-bg: #ffffff;
+    --fg: #020817; --fg-muted: #64748b; --muted-bg: #f1f5f9; --border: #e2e8f0;
+    --primary: #135daa; --primary-fg: #ffffff; --accent: #0da2e7;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); }
+
+  .page {
+    font-family: var(--font-sans);
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    line-height: 1.5;
+  }
+
+  ::selection { background: var(--accent); color: #fff; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin: 0 0 0.8rem;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 2.1rem;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.9rem;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 1.02rem;
+    color: var(--fg-muted);
+    max-width: 68ch;
+    margin: 0 0 1.6rem;
+  }
+
+  .source-note {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    margin-bottom: 2.8rem;
+  }
+  .source-note strong { color: var(--fg); font-weight: 600; }
+
+  .persona {
+    margin-bottom: 3.2rem;
+  }
+  .persona-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 2px solid var(--primary);
+  }
+  .persona-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .persona-who {
+    font-size: 0.88rem;
+    color: var(--fg-muted);
+  }
+  .persona-tagline {
+    font-size: 0.92rem;
+    color: var(--fg-muted);
+    margin: 0.6rem 0 1.1rem;
+    max-width: 70ch;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    min-width: 640px;
+  }
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-weight: 600;
+    background: var(--bg-subtle);
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg-subtle); }
+  .task-name { font-weight: 600; white-space: nowrap; }
+  .task-desc { color: var(--fg); max-width: 34ch; }
+  .task-tools { color: var(--fg-muted); }
+  .tool-chip {
+    display: inline-block;
+    background: var(--muted-bg);
+    border-radius: 0.3rem;
+    padding: 0.06rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    margin: 0.1rem 0.25rem 0.1rem 0;
+    white-space: nowrap;
+  }
+
+  .gaps {
+    margin-top: 3rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--border);
+  }
+  .gaps h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.9rem;
+  }
+  .gaps ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--fg-muted);
+    font-size: 0.88rem;
+  }
+  .gaps li { margin-bottom: 0.5rem; }
+  .gaps code {
+    font-family: var(--font-mono);
+    background: var(--muted-bg);
+    padding: 0.05rem 0.35rem;
+    border-radius: 0.25rem;
+    font-size: 0.82rem;
+    color: var(--fg);
+  }
+
+  .footer-note {
+    margin-top: 2.5rem;
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">Daylight Media — cross-persona research</p>
+  <h1>Who does what, and with what</h1>
+  <p class="dek">Key tasks and responsibilities by user type, grounded in stakeholder interviews — plus the tools, artifacts, and documents each task actually runs through today.</p>
+
+  <div class="source-note">
+    <span>📎</span>
+    <span><strong>Current-state, not aspirational.</strong> Every row below traces to a stakeholder interview (Brett Connaughton/Ad Ops, Thomas Mancusi/Sales, Jesse Tracy/Finance, Jay Green/Content Partnerships) or a Foundation doc. Where a system's real name is ambiguous across interviews (see the Marly/Molly/Bob/Bolt naming cluster), the persona's own words are used. Product, Legal, and Executive appear on the org roster but haven't been interviewed yet — no task detail exists for them beyond a title, so they're intentionally left off this table rather than guessed at.</span>
+  </div>
+
+  <!-- SALES -->
+  <div class="persona">
+    <div class="persona-head">
+      <span class="persona-name">Sales</span>
+      <span class="persona-who">Thomas Mancusi · Level 4</span>
+    </div>
+    <p class="persona-tagline">Owns deal formation end-to-end — RFP intake through a signed IO, rate-setting, and the master rate card — then hands off to Ad Ops. A real Sales/Ad Ops alignment meeting (Brett, Ad Ops) confirmed this boundary directly: Sales owns everything through drafting/submitting the RFP; Ad Ops's part starts at vetting.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Responsibility</th><th>Tools / artifacts / docs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="task-name">Rate card filtering</td>
+            <td class="task-desc">Cross-references the Rate Card against a client's target list — competitive exclusivity, prior vetting responses, genre — before handing a candidate show list to Ad Ops for vetting.</td>
+            <td class="task-tools"><span class="tool-chip">Daylight Media Roster.xlsx</span> (manual copy/paste)</td>
+          </tr>
+          <tr>
+            <td class="task-name">RFP drafting &amp; agency templating</td>
+            <td class="task-desc">Adapts the filtered show list into whichever template the agency uses (Oxford, RSU, WPP) — done ~95% of the time by Aaron Hurting.</td>
+            <td class="task-tools"><span class="tool-chip">OR RFP Template.xlsx</span> + agency templates</td>
+          </tr>
+          <tr>
+            <td class="task-name">Ad-load judgment (at close)</td>
+            <td class="task-desc">Approves/declines a new booking against an unwritten mental rule (max 3 embedded spots/show/week) before it's handed to Ad Ops for scheduling.</td>
+            <td class="task-tools">Memory only (no tool) + <span class="tool-chip">Molly / Bob</span> view</td>
+          </tr>
+          <tr>
+            <td class="task-name">IO intake &amp; papering handoff</td>
+            <td class="task-desc">Receives signed Insertion Orders by email and hands off to Ad Ops for order entry.</td>
+            <td class="task-tools"><span class="tool-chip">Email (IO handoff)</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Rate / CPM decisions</td>
+            <td class="task-desc">Sets, holds, or raises CPM weekly from 8-week trailing/forward sellout %.</td>
+            <td class="task-tools"><span class="tool-chip">Molly</span> sellout dashboards</td>
+          </tr>
+          <tr>
+            <td class="task-name">Master List / Rate Card ownership</td>
+            <td class="task-desc">Solely owns and edits the full rate card weekly — demos, CPM, exclusivity history, attribution vendor per show.</td>
+            <td class="task-tools"><span class="tool-chip">Daylight Media Roster.xlsx</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Delivery / performance monitoring</td>
+            <td class="task-desc">Checks over/under-delivery per episode to inform CPM decisions — a distinct read of Podscribe from Ad Ops's delivery-issue use of the same tool.</td>
+            <td class="task-tools"><span class="tool-chip">Podscribe</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Renewal &amp; win-back outreach</td>
+            <td class="task-desc">Tracks flight end dates and cancellations from memory to time re-engagement.</td>
+            <td class="task-tools">Memory only (no tool)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Prospecting &amp; new-brand pricing</td>
+            <td class="task-desc">Evaluates a new advertiser's fit for a show using average-unit-rate reasoning.</td>
+            <td class="task-tools"><span class="tool-chip">Daylight Media Roster.xlsx</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Ad-placement doctrine</td>
+            <td class="task-desc">Personal IP taught verbally to hosts — spot length, position, spacing rules.</td>
+            <td class="task-tools">Taught verbally (no tool)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AD OPS -->
+  <div class="persona">
+    <div class="persona-head">
+      <span class="persona-name">Ad Ops</span>
+      <span class="persona-who">Brett Connaughton · Level 2</span>
+    </div>
+    <p class="persona-tagline">Everything downstream of a signed IO — vetting, order entry, ad-plan scheduling, copy trafficking, revisions, and delivery reporting. Per Brett: "sales doesn't really need visibility into a lot of this" once a deal is placed.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Responsibility</th><th>Tools / artifacts / docs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="task-name">Vetting</td>
+            <td class="task-desc">Sends vetting requests on the Sales-supplied show list, logs yes/no + reason — the first task in Ad Ops' hand-off (Sales does not execute vetting itself).</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> Advertisers page</td>
+          </tr>
+          <tr>
+            <td class="task-name">Ad plan &amp; scheduling (BOB)</td>
+            <td class="task-desc">Builds the week-over-week ad-plan grid — spot spacing, midroll rotation, category exclusivity (manual rules, no system enforcement).</td>
+            <td class="task-tools"><span class="tool-chip">Marly / QCode</span> Ad Plan (BOB)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Order entry ("papering")</td>
+            <td class="task-desc">Manually re-enters each IO spot-by-spot into the order system — the single biggest time sink.</td>
+            <td class="task-tools"><span class="tool-chip">Marly / QCode</span> · order naming: <code>{order#}_{advertiser}_{agency}_{date}</code></td>
+          </tr>
+          <tr>
+            <td class="task-name">Flight / schedule revisions</td>
+            <td class="task-desc">Manually moves a booked flight to a new week — copy all fields out, delete, re-enter, repeated per affected spot.</td>
+            <td class="task-tools"><span class="tool-chip">Marly / Vault</span> ad-plan grid</td>
+          </tr>
+          <tr>
+            <td class="task-name">Ad copy trafficking</td>
+            <td class="task-desc">Monday "copy audit" + Wednesday follow-up emails to advertisers missing a recorded script.</td>
+            <td class="task-tools"><span class="tool-chip">Marly / Vault</span> Copy Upload tab · email</td>
+          </tr>
+          <tr>
+            <td class="task-name">Pre-approval tracking</td>
+            <td class="task-desc">Flags clients requiring script pre-approval; a checkbox triggers an automated reminder.</td>
+            <td class="task-tools"><span class="tool-chip">Marly / Vault</span> ad-plan checkbox</td>
+          </tr>
+          <tr>
+            <td class="task-name">Revisions &amp; make-goods</td>
+            <td class="task-desc">Tracks underdelivery make-goods against a raw email thread; not a living document.</td>
+            <td class="task-tools">Email thread · Dynamic Order (Marly)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Delivery reporting &amp; performance tracking</td>
+            <td class="task-desc">Cross-references sales-order data against delivery data — two disconnected tabs, manual CSV comparison.</td>
+            <td class="task-tools"><span class="tool-chip">Podscribe</span> + <span class="tool-chip">Marly</span> (manual CSV)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Client (weekly) reporting</td>
+            <td class="task-desc">Manual pull, sanity check, and send of performance data to clients.</td>
+            <td class="task-tools"><span class="tool-chip">Podscribe</span> exports</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FINANCE -->
+  <div class="persona">
+    <div class="persona-head">
+      <span class="persona-name">Finance</span>
+      <span class="persona-who">Jesse Tracy · Level 3</span>
+    </div>
+    <p class="persona-tagline">Invoicing, collections, payouts, and per-show financial reporting across ~100 shows.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Responsibility</th><th>Tools / artifacts / docs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="task-name">Monthly invoice generation</td>
+            <td class="task-desc">Generates the prior month's invoices, split by revenue type rather than combined.</td>
+            <td class="task-tools"><span class="tool-chip">Marly Finance</span> (Generate Invoice / Bill / Social / Custom / Usage / Rewards)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Billing-destination management</td>
+            <td class="task-desc">Chooses whether an order bills the advertiser or agency; hand-builds workarounds for dual-billing cases.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> Advertiser/Agency tab</td>
+          </tr>
+          <tr>
+            <td class="task-name">Collections / past-due tracking</td>
+            <td class="task-desc">Monitors unpaid/past-due invoices, sends (often batched) reminder emails.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> invoice list · email</td>
+          </tr>
+          <tr>
+            <td class="task-name">PDF invoice retrieval</td>
+            <td class="task-desc">Pulls sent-invoice PDFs to attach to collections follow-ups.</td>
+            <td class="task-tools"><span class="tool-chip">Bill.com</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Monthly per-show financial reporting</td>
+            <td class="task-desc">Manually populates and publishes a PDF report per show, monthly — the top-cited pain point.</td>
+            <td class="task-tools">External accountant's Excel files → manual entry → PDF</td>
+          </tr>
+          <tr>
+            <td class="task-name">Payout reporting</td>
+            <td class="task-desc">Runs Gross Revenue / Daylight Participation / Show Participation splits per show.</td>
+            <td class="task-tools"><span class="tool-chip">Marly Finance</span> Payout Reports</td>
+          </tr>
+          <tr>
+            <td class="task-name">Miscellaneous revenue tracking</td>
+            <td class="task-desc">Tracks non-core revenue outside Marly, still being built out.</td>
+            <td class="task-tools">Financial Airtable (parser tool)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Internal metrics reporting</td>
+            <td class="task-desc">Exports raw Marly data and manually pivots it — no native pivot-table export.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> export → Excel monetization sheet</td>
+          </tr>
+          <tr>
+            <td class="task-name">Broadcast-month reconciliation</td>
+            <td class="task-desc">Manually reconciles clients on a broadcast-month cycle against Marly's calendar-month default.</td>
+            <td class="task-tools"><span class="tool-chip">Marly Finance</span> / <span class="tool-chip">Bill.com</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONTENT PARTNERSHIPS -->
+  <div class="persona">
+    <div class="persona-head">
+      <span class="persona-name">Content Partnerships</span>
+      <span class="persona-who">Jay Green · Level 4</span>
+    </div>
+    <p class="persona-tagline">Owns the show/host relationship — onboarding, custom sponsorship builds, one-sheets, and partner-facing reporting.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Responsibility</th><th>Tools / artifacts / docs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="task-name">Show onboarding</td>
+            <td class="task-desc">Collects show and host surveys from talent/producers to populate the system before launch.</td>
+            <td class="task-tools">Emailed surveys → <span class="tool-chip">Marly</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Vetting &amp; partner-performance tracking</td>
+            <td class="task-desc">Tracks vetting responses and a partner-responsiveness checklist.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Billing/invoicing oversight</td>
+            <td class="task-desc">Monitors partner billing to spot invoicing gaps and reports back to partners.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Weekly booking reporting</td>
+            <td class="task-desc">Every Monday, manually pulls the prior week's bookings to notify partners of closed revenue.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> order system → Excel pivot table</td>
+          </tr>
+          <tr>
+            <td class="task-name">Custom sponsorship package development</td>
+            <td class="task-desc">Builds/tracks non-standard packages — segment/studio/tour sponsorships, host-specific brand asks.</td>
+            <td class="task-tools">Custom master sheet · Daylight Custom Opportunities sheet · Canva</td>
+          </tr>
+          <tr>
+            <td class="task-name">One-sheet creation &amp; distribution</td>
+            <td class="task-desc">Produces per-show marketing one-sheets sent to advertisers.</td>
+            <td class="task-tools"><span class="tool-chip">Canva</span> → PDF on <span class="tool-chip">Google Drive</span></td>
+          </tr>
+          <tr>
+            <td class="task-name">Ad plan updates</td>
+            <td class="task-desc">Requests changes to a show's ad plan — requires product-team approval today.</td>
+            <td class="task-tools"><span class="tool-chip">Marly</span> (via product-team sign-off)</td>
+          </tr>
+          <tr>
+            <td class="task-name">Host detail tracking</td>
+            <td class="task-desc">Tracks granular host info (preferences, special asks) with no unified system.</td>
+            <td class="task-tools">Disparate manual documents</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="gaps">
+    <h2>Reading this table</h2>
+    <ul>
+      <li>The order system's real name is unresolved across interviews — Ad Ops and Content Partnerships call it <code>Marly</code>/<code>QCode</code>, Sales calls the same order/ad-plan layer <code>Molly</code>/<code>Bob</code>, and a follow-up Ad Ops session drops <code>Bolt</code> once with no explanation. Shown here using each persona's own words rather than picked for them.</li>
+      <li>Marly's own sidebar groups Ad Plans, Orders, and Vetting Contacts under a "Sales" nav folder — but that's stale information architecture, not who does the work. A direct Sales/Ad Ops alignment conversation confirmed Ad Ops actually operates all three day-to-day. Task ownership above follows the interview quotes, not Marly's nav placement.</li>
+      <li><strong>Product, Legal, and Executive</strong> exist on the org roster but haven't been interviewed — left off this table rather than guessed at.</li>
+      <li>Three more people were invited but not yet interviewed even though their work is referenced above by teammates: <strong>Kyle Larson</strong> (Ad Ops copy trafficking), <strong>Erin Herting</strong> (Sales), <strong>Ryan Middledorf</strong> (Content Partnerships onboarding, day-to-day owner).</li>
+      <li>Cells with no tool named (e.g. Sales' availability judgment, renewal tracking) are genuinely undocumented — those tasks run on memory today, not a missing citation.</li>
+    </ul>
+  </div>
+
+  <p class="footer-note">Sources: stakeholder interviews (Brett Connaughton, Thomas Mancusi, Jesse Tracy, Jay Green) + refs/Foundation. Full grounding in journeys/&lt;persona&gt;/notes.md and .claude/skills/daylight-journey-mapping/references/system-facts.md.</p>
+</div>

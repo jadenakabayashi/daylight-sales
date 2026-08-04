@@ -1,0 +1,602 @@
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --radius: 0.6rem;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --cp: #2a9d90;
+    --cp-bg: #ecf7f5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #020817;
+      --bg-subtle: #0a1220;
+      --card-bg: #0b1524;
+      --fg: #f8fafc;
+      --fg-muted: #94a3b8;
+      --muted-bg: #1e293b;
+      --border: #1e293b;
+      --primary: #2f8fd6;
+      --primary-fg: #ffffff;
+      --accent: #3abcf8;
+      --destructive: #f87171;
+      --destructive-bg: #2a1416;
+      --destructive-border: #4c1d1d;
+      --cp: #2eb88a;
+      --cp-bg: #0f2620;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #020817;
+    --bg-subtle: #0a1220;
+    --card-bg: #0b1524;
+    --fg: #f8fafc;
+    --fg-muted: #94a3b8;
+    --muted-bg: #1e293b;
+    --border: #1e293b;
+    --primary: #2f8fd6;
+    --primary-fg: #ffffff;
+    --accent: #3abcf8;
+    --destructive: #f87171;
+    --destructive-bg: #2a1416;
+    --destructive-border: #4c1d1d;
+    --cp: #2eb88a;
+    --cp-bg: #0f2620;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --cp: #2a9d90;
+    --cp-bg: #ecf7f5;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); }
+
+  .page {
+    font-family: var(--font-sans);
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    line-height: 1.55;
+  }
+
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* ---------- Header ---------- */
+  .hero { margin-bottom: 2.4rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+    font-weight: 600;
+  }
+  .wip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    background: var(--destructive-bg);
+    color: var(--destructive);
+    border: 1px solid var(--destructive-border);
+    margin-left: 0.6rem;
+    vertical-align: middle;
+  }
+  h1 {
+    font-size: 2.6rem;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.1rem;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 1.1rem;
+    color: var(--fg-muted);
+    max-width: 62ch;
+    margin: 0 0 1.8rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    font-size: 0.82rem;
+    color: var(--fg-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.tool { background: var(--muted-bg); border: 1.5px solid var(--fg-muted); }
+  .dot.friction { background: var(--destructive); }
+  .dot.source { background: var(--accent); }
+  .dot.cp { background: var(--cp); }
+  .dot.secondhand { background: var(--card-bg); border: 1.5px dashed var(--fg-muted); }
+
+  /* ---------- WIP scope callout ---------- */
+  .scope-callout {
+    display: flex;
+    gap: 0.8rem;
+    border: 1px dashed var(--destructive-border);
+    background: var(--destructive-bg);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 3.6rem;
+  }
+  .scope-callout .icon { color: var(--destructive); font-size: 1.1rem; flex: none; }
+  .scope-callout h3 { margin: 0 0 0.4rem; font-size: 0.98rem; color: var(--destructive); }
+  .scope-callout p { margin: 0; font-size: 0.88rem; color: var(--fg); max-width: 66ch; }
+
+  /* ---------- Owner tag ---------- */
+  .owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.7rem;
+    background: var(--cp-bg);
+    color: var(--cp);
+  }
+  .owner::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--cp); }
+  .owner.owner-secondhand {
+    background: var(--muted-bg);
+    color: var(--fg-muted);
+  }
+  .owner.owner-secondhand::before { background: var(--fg-muted); }
+
+  /* ---------- Spine / stages ---------- */
+  .stages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .stages::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border) 92%);
+  }
+  .stage {
+    position: relative;
+    padding-left: 3.6rem;
+    margin-bottom: 3.2rem;
+  }
+  .stage-marker {
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 1;
+  }
+  .stage-phase {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0.1rem 0 0.35rem;
+  }
+  .stage h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.7rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .stage p.body { margin: 0 0 0.9rem; max-width: 66ch; }
+  .stage p.body:last-of-type { margin-bottom: 1.1rem; }
+  .stage ul.detail {
+    margin: 0 0 1.1rem;
+    padding-left: 1.15rem;
+    max-width: 64ch;
+  }
+  .stage ul.detail li { margin-bottom: 0.5rem; }
+  .stage ul.detail li::marker { color: var(--fg-muted); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    background: var(--muted-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  .friction {
+    display: flex;
+    gap: 0.7rem;
+    background: var(--destructive-bg);
+    border: 1px solid var(--destructive-border);
+    border-left: 3px solid var(--destructive);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.1rem;
+    max-width: 66ch;
+  }
+  .friction .icon { color: var(--destructive); font-size: 1rem; line-height: 1.5; flex: none; }
+  .friction p { margin: 0; font-size: 0.92rem; }
+  .friction .quote { font-style: italic; color: var(--fg-muted); }
+
+  .gap-note {
+    font-size: 0.88rem;
+    color: var(--fg-muted);
+    max-width: 62ch;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.1rem;
+  }
+  .gap-note strong { color: var(--fg); }
+
+  .shots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    margin: 1.2rem 0 1.1rem;
+  }
+  figure.shot {
+    margin: 0;
+    flex: 1 1 340px;
+    max-width: 420px;
+  }
+  .browser-chrome {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 1px 2px rgba(2, 8, 23, 0.06);
+  }
+  .browser-chrome .bar {
+    display: flex;
+    gap: 5px;
+    padding: 0.55rem 0.7rem;
+    background: var(--muted-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .browser-chrome .bar span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .browser-chrome img { display: block; width: 100%; height: auto; }
+  figure.shot figcaption {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    margin-top: 0.5rem;
+  }
+
+  .source-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+    border-top: 1px dashed var(--border);
+    padding-top: 0.6rem;
+    margin-top: 0.4rem;
+    display: inline-block;
+  }
+  .source-tag .dot { display: inline-block; margin-right: 0.4rem; vertical-align: middle; }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 2rem; }
+  }
+
+  /* ---------- Naming note + methodology ---------- */
+  .callout {
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  .callout h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+  .callout p { margin: 0 0 0.7rem; font-size: 0.92rem; color: var(--fg-muted); max-width: 68ch; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--muted-bg);
+    padding: 0.05em 0.4em;
+    border-radius: 0.3em;
+  }
+
+  .methodology { border-top: 1px solid var(--border); padding-top: 2rem; }
+  .methodology h3 { font-size: 1.05rem; margin: 0 0 0.9rem; }
+  .methodology ul { margin: 0; padding-left: 1.15rem; }
+  .methodology li { font-size: 0.88rem; color: var(--fg-muted); margin-bottom: 0.55rem; max-width: 66ch; }
+  .methodology li::marker { color: var(--border); }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Daylight Media &middot; Internal &mdash; Current State<span class="wip-pill">WIP &middot; 2 interviews</span></p>
+    <h1>The Content Partnerships Journey</h1>
+    <p class="dek">How Daylight manages the show/partner side of the business today &mdash; onboarding, vetting, custom packages, and one-sheets &mdash; reconstructed from Jay Green (EVP, Business Strategy &amp; Partnerships) and Ryan Middledorf, who owns show onboarding day to day and confirms much of what Jay described secondhand.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="dot cp"></span>Content Partnerships-owned</span>
+      <span class="legend-item"><span class="dot secondhand"></span>Secondhand (owner not yet interviewed)</span>
+      <span class="legend-item"><span class="dot tool"></span>Tool in use</span>
+      <span class="legend-item"><span class="dot friction"></span>Friction point</span>
+      <span class="legend-item"><span class="dot source"></span>Source</span>
+    </div>
+  </header>
+
+  <div class="scope-callout">
+    <span class="icon">&#9888;</span>
+    <div>
+      <h3>Improved since v1, still a draft</h3>
+      <p>Ryan Middledorf &mdash; who Jay named as owning show onboarding day to day &mdash; has now been interviewed himself, confirming that stage firsthand and adding three tasks Jay never mentioned (stages 3, 9, and part of 2 below). <strong>Annie Hunt</strong>, who owns custom packages and one-sheets, still hasn't been interviewed; her work is now visually confirmed via real screenshots but still only described through Jay. Those stages keep a secondhand tag.</p>
+    </div>
+  </div>
+
+  <ol class="stages">
+
+    <li class="stage" id="stage-1">
+      <div class="stage-marker">1</div>
+      <p class="stage-phase">Intake</p>
+      <span class="owner">Content Partnerships &mdash; Ryan Middledorf</span>
+      <h2>Show onboarding into Marly</h2>
+      <p class="body">Ryan owns onboarding for every new show: roughly 20-30 data points collected via a checklist plus live onboarding calls walking talent and producers through best practices and ad-sales procedures. That feeds a talent survey and a separate show survey to populate Marly before a show goes live to Sales. Both surveys carry outdated fields &mdash; Ryan: some "don't necessarily need to be here anymore" &mdash; and are missing newer categories like supplements and AI-ad approvals.</p>
+      <p class="body">Ryan's own fix-it list: a single "invitation to vault" link so producers/talent can complete every onboarding step with one sign-on instead of hunting across sources; automated 6-month update prompts instead of surveys that "very rarely update"; and a "green light, red light" signal so Jay can see at a glance when a show is fully ready to launch.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Each survey is tied to a single email address and can't be split across collaborators &mdash; if the one person who started it can only finish half, someone else has to log in <em>as them</em> to complete the rest. Ryan named this directly as a process blocker, not just an inconvenience.</p>
+      </div>
+      <div class="gap-note"><strong>No screenshot for this stage</strong> &mdash; the onboarding form itself wasn't shown on screen during either interview.</div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Onboarding</span><span class="badge">Survey forms</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; Ryan Middledorf interview</span>
+    </li>
+
+    <li class="stage" id="stage-2">
+      <div class="stage-marker">2</div>
+      <p class="stage-phase">Ongoing</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>Vetting &amp; partner-performance tracking</h2>
+      <p class="body">Jay tracks vetting responses and partner responsiveness at the team level; Ryan does the same per-show and supplies the number that makes it urgent: shows have <strong>48 hours</strong> to return a vetting response before a brand's budget is typically already spoken for elsewhere &mdash; <span class="quote">"nine times out of 10 that money is gone."</span> Ryan currently checks this by hand every other day.</p>
+      <p class="body">He also maintains a manual weekly checklist per show, cross-referencing vetting status and ad-marker completion, and wants a one-click "generate report" per show pulling stats/billing/approvals into one view &mdash; partly to offset Marly's own slow load times, which today force the team to keep parallel Google Sheets just to avoid losing work to a crash.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Ryan wants an automated alert as a vet approaches or passes the 48-hour mark, with an option to auto-generate a follow-up email &mdash; while explicitly flagging the tension between automating this and preserving the personal relationship he manages with each show.</p>
+      </div>
+      <div class="gap-note"><strong>No screenshot for this stage.</strong></div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Vetting</span><span class="badge">Google Sheets (parallel tracking)</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; Ryan Middledorf interview &middot; corroborated by Erin Herting (Sales) interview</span>
+    </li>
+
+    <li class="stage" id="stage-3">
+      <div class="stage-marker">3</div>
+      <p class="stage-phase">Weekly &mdash; new this pass</p>
+      <span class="owner">Content Partnerships &mdash; Ryan Middledorf</span>
+      <h2>Advertiser spot-check &amp; make-good verification</h2>
+      <p class="body">Every Monday, Ryan manually verifies that each advertiser's spots actually aired in their committed week and ran at least 60 seconds &mdash; the contracted minimum. A spot around 55 seconds has "a little bit of leeway"; one around 45 seconds triggers a make-good. He copies the underlying data out of Podscribe into Google Sheets by hand and sends the resulting report to Sales and Ad Ops.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>This looks like the same class of check Ad Ops's own delivery-reporting stage already performs against Podscribe (see <code>journeys/sales-adops</code>). Whether these are genuinely redundant or serve different purposes hasn't been asked on either side &mdash; flagged as an open question, not resolved here.</p>
+      </div>
+      <div class="gap-note"><strong>No screenshot for this stage</strong> &mdash; not shown on screen during the interview.</div>
+      <div class="badges"><span class="badge">Podscribe</span><span class="badge">Google Sheets</span><span class="badge">Email</span></div>
+      <span class="source-tag"><span class="dot source"></span>Ryan Middledorf interview</span>
+    </li>
+
+    <li class="stage" id="stage-4">
+      <div class="stage-marker">4</div>
+      <p class="stage-phase">Ongoing</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>Billing &amp; invoicing oversight</h2>
+      <p class="body">Jay monitors partner billing in Marly to spot invoicing gaps, and reports back to partners when something looks off. This is oversight, not execution &mdash; the actual invoicing work is Finance's (see <code>journeys/finance</code>). No update from Ryan's interview.</p>
+      <div class="gap-note"><strong>No screenshot for this stage.</strong></div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Finance</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview</span>
+    </li>
+
+    <li class="stage" id="stage-5">
+      <div class="stage-marker">5</div>
+      <p class="stage-phase">Weekly</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>Weekly booking reporting</h2>
+      <p class="body">Every Monday, Jay manually pulls the prior week's bookings out of Marly's order system into a pivot table &mdash; Show / Brand / SUM of Amount &mdash; to notify partners of closed revenue. Same manual export-and-pivot pattern Finance uses for its own monetization sheet; neither system supports pivot-table export natively.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_BOOKINGS_PIVOT}}" alt="A Google Sheet titled '7/13 Bookings' showing a pivot table with Show, Brand, and SUM of Amount columns, grouped and subtotaled per show." />
+          </div>
+          <figcaption>The real "7/13 Bookings" pivot &mdash; rebuilt by hand from Marly's order data every Monday.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Orders</span><span class="badge">Google Sheets</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; combined interviews packet</span>
+    </li>
+
+    <li class="stage" id="stage-6">
+      <div class="stage-marker">6</div>
+      <p class="stage-phase">Ongoing</p>
+      <span class="owner owner-secondhand">Secondhand &mdash; Annie Hunt</span>
+      <h2>Custom sponsorship package development</h2>
+      <p class="body">Packages beyond standard ad spots &mdash; segment sponsorships, studio/tour sponsorships, social posts, special interviews, host-specific brand asks &mdash; live entirely outside Marly, largely owned by Annie Hunt. This pass confirms it's at least three distinct real artifacts, not one: the "Daylight Custom Opportunities" tracker (one row per show, with richer status values than assumed in v1 &mdash; Yes/No/TBD plus "let's get creative," "open for the right brand," and "limited opportunities"); a real "custom master sheet" &mdash; confirmed as "Wildmen Presenting Sponsorship Packages," showing actual package pricing (Exclusive Title Sponsorship at $225,000 net/3 months, Product Placement Title Sponsorship at $165,000 net/3 months, broken into Channel/Deliverable/Frequency/Cost Type/CPM/Estimated Impressions/Cost); and a brand-specific pitch tracker &mdash; confirmed as "Whoop Responses," logging one advertiser's per-show approval status individually.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_CUSTOM_OPPS}}" alt="The real 'Daylight Custom Opportunities' Google Sheet, one row per show, with dropdown status columns for Presenting Sponsorship, Product Placement, Segment Sponsorship, Custom Segment, Custom Episode, Usage Rights, Social, and Newsletter." />
+          </div>
+          <figcaption>The Custom Opportunities tracker &mdash; one row per show, dropdown status per opportunity type.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_SPONSOR_PACKAGES}}" alt="The real 'Wildmen Presenting Sponsorship Packages' sheet showing an Exclusive Title Sponsorship package priced at $225,000 net over 3 months, broken into channel, deliverable, frequency, cost type, CPM, estimated impressions, and cost." />
+          </div>
+          <figcaption>The custom master sheet, confirmed real: package-level pricing with real dollar figures.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_WHOOP_RESPONSES}}" alt="A 'Whoop Responses' Google Sheet tracking one brand's custom-pitch responses per show, with approval-status rows like 'approved' and 'Producer read only.'" />
+          </div>
+          <figcaption>A brand-specific pitch tracker &mdash; one advertiser, per-show approval status.</figcaption>
+        </figure>
+      </div>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>None of this integrates with Marly today &mdash; Jay wants the custom master sheet's rate logic and asset tracking pulled into the system directly.</p>
+      </div>
+      <div class="badges"><span class="badge">Google Sheets &mdash; custom master sheet</span><span class="badge">Google Sheets &mdash; Custom Opportunities</span><span class="badge">Google Sheets &mdash; brand pitch trackers</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; combined interviews packet</span>
+    </li>
+
+    <li class="stage" id="stage-7">
+      <div class="stage-marker">7</div>
+      <p class="stage-phase">Per-deal &mdash; best-documented stage</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>One-sheet creation &amp; distribution</h2>
+      <p class="body">Two parallel paths exist for the per-show marketing sheet sent to advertisers. A legacy, Marly-native builder lets anyone pick a podcast from a searchable list and auto-generate a sheet &mdash; but Jay believes it's largely unused today: <span class="quote">"I don't know how many sellers are actually using the Marley version anymore"</span> &mdash; and it can't export a PDF or paste cleanly into a deck.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ONESHEET_LEGACY}}" alt="Marly/QCode's native one-sheet view for The Shawn Ryan Show, showing show art, an About section, and Audience stats: median age 33, household income $125,000, M/F split 85/15, and average consumption per episode 1,750,000." />
+          </div>
+          <figcaption>The legacy Marly-native one-sheet output for The Shawn Ryan Show.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ONESHEET_BUILDER}}" alt="Marly/QCode 'New One Sheet' modal with a searchable podcast picker listing shows like A Better Paradise, A Better You, and Ad Lucem." />
+          </div>
+          <figcaption>The builder itself: pick a podcast, generate a sheet.</figcaption>
+        </figure>
+      </div>
+      <p class="body">The actual production path runs entirely outside Marly: Annie Hunt builds one-sheets in <strong>Canva</strong>, hosted as PDFs on <strong>Google Drive</strong>. The visual layout &mdash; About the Show, Show Reach (downloads/YouTube/TikTok), The Audience (gender split, median age) &mdash; closely mirrors what the Marly builder produces, just polished and exportable.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ONESHEET_CANVA}}" alt="A finished Canva one-sheet PDF, 'Street You Grew Up On,' hosted by Kerry Washington, showing About the Show, Show Reach (750K downloads, 76.8K YouTube, 1.7M TikTok), and The Audience (39/61 M/F split, median age 32)." />
+          </div>
+          <figcaption>A real finished Canva one-sheet &mdash; the production path Annie Hunt actually uses.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ONESHEET_DRIVE}}" alt="Google Drive folder Daylight Media > Content Partnerships > Show One Sheets, listing dozens of one-sheet PDFs, most recently modified by Annie Hunt." />
+          </div>
+          <figcaption>Where finished one-sheets actually live &mdash; a Drive folder, not Marly.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; One Sheets</span><span class="badge">Canva</span><span class="badge">Google Drive</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; combined interviews packet</span>
+    </li>
+
+    <li class="stage" id="stage-8">
+      <div class="stage-marker">8</div>
+      <p class="stage-phase">As needed</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>Ad plan updates</h2>
+      <p class="body">Any change to a show's ad plan currently requires product/"Scott" approval before it can go through &mdash; a bottleneck Jay flagged directly as not scalable as the show roster keeps growing. No update from Ryan's interview.</p>
+      <div class="gap-note"><strong>No screenshot for this stage.</strong></div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Ad Plans</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview</span>
+    </li>
+
+    <li class="stage" id="stage-9">
+      <div class="stage-marker">9</div>
+      <p class="stage-phase">Per-org &mdash; new this pass</p>
+      <span class="owner">Content Partnerships &mdash; Ryan Middledorf</span>
+      <h2>User access &amp; configuration management</h2>
+      <p class="body">Provisioning Marley access for a newly onboarded org is fully manual and per-person. A real recent example: the Daily Beast (6 shows, roughly 15-20 people needing access) took about an hour to provision by hand. Ryan described four access tiers verbally while walking through the real product: <span class="quote">"Full Marley"</span> (everything including vetting), <span class="quote">"Full Marley... read only"</span> (everything minus vetting), <span class="quote">"Marley Light"</span> (no financials, plus vetting), and <span class="quote">"Marley Light with no financials"</span> (minus financials and vetting).</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>For each person: pick their show, set their tier, and Marly generates an invitation email &mdash; which Ryan then has to manually copy into Gmail and send, one at a time, with no bulk option.</p>
+      </div>
+      <div class="gap-note"><strong>No screenshot for this stage</strong> &mdash; not shown on screen during the interview. Whether this access model is the same system as the Admin/Manager/Editor/Analyst/Viewer table in <code>Team Roles.pdf</code> is unresolved &mdash; see the naming note below.</div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Access Management</span><span class="badge">Email</span></div>
+      <span class="source-tag"><span class="dot source"></span>Ryan Middledorf interview</span>
+    </li>
+
+    <li class="stage stage-gap" id="stage-10">
+      <div class="stage-marker">10</div>
+      <p class="stage-phase">Background</p>
+      <span class="owner">Content Partnerships</span>
+      <h2>Host detail tracking</h2>
+      <p class="gap-note"><strong>No screenshot for this stage.</strong> Granular host details &mdash; pets, birthdays, specific sponsor requests &mdash; are tracked across disparate manual documents with no unified system, the same "no single source of truth" pattern seen elsewhere (the Rate Card, the custom master sheet). Ryan separately wants a visual progress tracker (e.g. a completion percentage) for onboarding status per show, which points at the same underlying problem.</p>
+      <div class="badges"><span class="badge">Manual documents</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jay Green interview &middot; Ryan Middledorf interview</span>
+    </li>
+
+  </ol>
+
+  <aside class="callout">
+    <h3>A note on names</h3>
+    <p>This journey inherits the same unresolved system-naming cluster documented in the Sales/Ad Ops journey (Marly, Marley, QCode, Molly, Bob/Vault) and uses "Marly/QCode" without implying either name is canonical. One name question v1 resolved: the Content Partnerships transcript's "Annie Han" and the org roster's "Annie Hunt" are confirmed as the same person. New this pass: Ryan Middledorf described a four-tier "Full Marley / Full Marley Read Only / Marley Light / Marley Light no financials" access model while provisioning real accounts &mdash; whether that's the same system as <code>Team Roles.pdf</code>'s external-partner role table (Admin/Manager/Editor/Analyst/Viewer) or a separate one is a new open question, not yet resolved.</p>
+  </aside>
+
+  <footer class="methodology">
+    <h3>Methodology &amp; gaps</h3>
+    <ul>
+      <li>Built from two interviews &mdash; <em>Understanding User Needs w Product (Content Partnerships_ Jay)</em> and <em>Understanding User Needs w Product (Content Partnerships_ Ryan)</em> &mdash; plus 9 screenshots pulled from the combined stakeholder-interviews packet (up from 5 in v1), 3 of which newly confirm the custom-package artifacts described in stage 6 and 1 of which newly confirms the weekly-booking pivot in stage 5.</li>
+      <li>Two of ten stages (3 and 9) are entirely new this pass, sourced from Ryan Middledorf's interview alone. Five of ten stages still have no supporting screenshot and are flagged individually rather than illustrated with a guess.</li>
+      <li>Annie Hunt (custom packages, one-sheets) still hasn't been interviewed herself. Her work is now visually confirmed via 7 real screenshots total, but still only described secondhand through Jay.</li>
+      <li>This journey doesn't yet trace how Content Partnerships' vetting/billing oversight connects to Ad Ops's vetting workflow (<code>journeys/sales-adops</code>) or Finance's invoicing (<code>journeys/finance</code>) &mdash; both look like real adjacent handoffs, neither confirmed from both sides yet. New this pass: the spot-check stage (3) looks like it may duplicate part of Ad Ops's delivery-reporting stage &mdash; flagged, not resolved.</li>
+      <li>An Erin Herting (Sales) interview landed in the same refs update but is out of scope for this journey &mdash; it independently corroborated Ryan's 48-hour vetting figure (stage 2) but is otherwise unprocessed; see <code>system-facts.md</code>.</li>
+    </ul>
+  </footer>
+
+</div>

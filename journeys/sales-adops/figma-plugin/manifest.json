@@ -1,0 +1,10 @@
+{
+  "name": "Sales & Ad Ops Journey Builder",
+  "id": "daylight-sales-adops-journey-builder",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

@@ -1,0 +1,577 @@
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --radius: 0.6rem;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --finance: #64748b;
+    --finance-bg: #f1f5f9;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #020817;
+      --bg-subtle: #0a1220;
+      --card-bg: #0b1524;
+      --fg: #f8fafc;
+      --fg-muted: #94a3b8;
+      --muted-bg: #1e293b;
+      --border: #1e293b;
+      --primary: #2f8fd6;
+      --primary-fg: #ffffff;
+      --accent: #3abcf8;
+      --destructive: #f87171;
+      --destructive-bg: #2a1416;
+      --destructive-border: #4c1d1d;
+      --finance: #94a3b8;
+      --finance-bg: #1e293b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #020817;
+    --bg-subtle: #0a1220;
+    --card-bg: #0b1524;
+    --fg: #f8fafc;
+    --fg-muted: #94a3b8;
+    --muted-bg: #1e293b;
+    --border: #1e293b;
+    --primary: #2f8fd6;
+    --primary-fg: #ffffff;
+    --accent: #3abcf8;
+    --destructive: #f87171;
+    --destructive-bg: #2a1416;
+    --destructive-border: #4c1d1d;
+    --finance: #94a3b8;
+    --finance-bg: #1e293b;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --card-bg: #ffffff;
+    --fg: #020817;
+    --fg-muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --border: #e2e8f0;
+    --primary: #135daa;
+    --primary-fg: #ffffff;
+    --accent: #0da2e7;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --finance: #64748b;
+    --finance-bg: #f1f5f9;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); }
+
+  .page {
+    font-family: var(--font-sans);
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    line-height: 1.55;
+  }
+
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* ---------- Header ---------- */
+  .hero { margin-bottom: 2.4rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin: 0 0 0.9rem;
+    font-weight: 600;
+  }
+  .wip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    background: var(--destructive-bg);
+    color: var(--destructive);
+    border: 1px solid var(--destructive-border);
+    margin-left: 0.6rem;
+    vertical-align: middle;
+  }
+  h1 {
+    font-size: 2.6rem;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.1rem;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .dek {
+    font-size: 1.1rem;
+    color: var(--fg-muted);
+    max-width: 62ch;
+    margin: 0 0 1.8rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    font-size: 0.82rem;
+    color: var(--fg-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.tool { background: var(--muted-bg); border: 1.5px solid var(--fg-muted); }
+  .dot.friction { background: var(--destructive); }
+  .dot.source { background: var(--accent); }
+  .dot.finance { background: var(--finance); }
+
+  /* ---------- WIP scope callout ---------- */
+  .scope-callout {
+    display: flex;
+    gap: 0.8rem;
+    border: 1px dashed var(--destructive-border);
+    background: var(--destructive-bg);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 3.6rem;
+  }
+  .scope-callout .icon { color: var(--destructive); font-size: 1.1rem; flex: none; }
+  .scope-callout h3 { margin: 0 0 0.4rem; font-size: 0.98rem; color: var(--destructive); }
+  .scope-callout p { margin: 0; font-size: 0.88rem; color: var(--fg); max-width: 66ch; }
+
+  /* ---------- Owner tag ---------- */
+  .owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.7rem;
+    background: var(--finance-bg);
+    color: var(--finance);
+  }
+  .owner::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--finance); }
+
+  /* ---------- Spine / stages ---------- */
+  .stages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .stages::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border) 92%);
+  }
+  .stage {
+    position: relative;
+    padding-left: 3.6rem;
+    margin-bottom: 3.2rem;
+  }
+  .stage-marker {
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 1;
+  }
+  .stage-phase {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin: 0.1rem 0 0.35rem;
+  }
+  .stage h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.7rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .stage p.body { margin: 0 0 0.9rem; max-width: 66ch; }
+  .stage p.body:last-of-type { margin-bottom: 1.1rem; }
+  .stage ul.detail {
+    margin: 0 0 1.1rem;
+    padding-left: 1.15rem;
+    max-width: 64ch;
+  }
+  .stage ul.detail li { margin-bottom: 0.5rem; }
+  .stage ul.detail li::marker { color: var(--fg-muted); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    background: var(--muted-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  .friction {
+    display: flex;
+    gap: 0.7rem;
+    background: var(--destructive-bg);
+    border: 1px solid var(--destructive-border);
+    border-left: 3px solid var(--destructive);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.1rem;
+    max-width: 66ch;
+  }
+  .friction .icon { color: var(--destructive); font-size: 1rem; line-height: 1.5; flex: none; }
+  .friction p { margin: 0; font-size: 0.92rem; }
+  .friction .quote { font-style: italic; color: var(--fg-muted); }
+
+  .gap-note {
+    font-size: 0.88rem;
+    color: var(--fg-muted);
+    max-width: 62ch;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.1rem;
+  }
+  .gap-note strong { color: var(--fg); }
+
+  .shots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    margin: 1.2rem 0 1.1rem;
+  }
+  figure.shot {
+    margin: 0;
+    flex: 1 1 340px;
+    max-width: 420px;
+  }
+  .browser-chrome {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 1px 2px rgba(2, 8, 23, 0.06);
+  }
+  .browser-chrome .bar {
+    display: flex;
+    gap: 5px;
+    padding: 0.55rem 0.7rem;
+    background: var(--muted-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .browser-chrome .bar span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .browser-chrome img { display: block; width: 100%; height: auto; }
+  figure.shot figcaption {
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    margin-top: 0.5rem;
+  }
+
+  .source-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+    border-top: 1px dashed var(--border);
+    padding-top: 0.6rem;
+    margin-top: 0.4rem;
+    display: inline-block;
+  }
+  .source-tag .dot { display: inline-block; margin-right: 0.4rem; vertical-align: middle; }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 2rem; }
+  }
+
+  /* ---------- Naming note + methodology ---------- */
+  .callout {
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  .callout h3 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+  .callout p { margin: 0 0 0.7rem; font-size: 0.92rem; color: var(--fg-muted); max-width: 68ch; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--muted-bg);
+    padding: 0.05em 0.4em;
+    border-radius: 0.3em;
+  }
+
+  .methodology { border-top: 1px solid var(--border); padding-top: 2rem; }
+  .methodology h3 { font-size: 1.05rem; margin: 0 0 0.9rem; }
+  .methodology ul { margin: 0; padding-left: 1.15rem; }
+  .methodology li { font-size: 0.88rem; color: var(--fg-muted); margin-bottom: 0.55rem; max-width: 66ch; }
+  .methodology li::marker { color: var(--border); }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Daylight Media &middot; Internal &mdash; Current State<span class="wip-pill">WIP &middot; single interview</span></p>
+    <h1>The Finance Journey</h1>
+    <p class="dek">How Daylight's revenue actually gets invoiced, collected, and reported today &mdash; reconstructed from Jesse Tracy's account of running Finance solo across a book of business that's grown from ~30 to ~100 shows.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="dot finance"></span>Finance-owned</span>
+      <span class="legend-item"><span class="dot tool"></span>Tool in use</span>
+      <span class="legend-item"><span class="dot friction"></span>Friction point</span>
+      <span class="legend-item"><span class="dot source"></span>Source</span>
+    </div>
+  </header>
+
+  <div class="scope-callout">
+    <span class="icon">&#9888;</span>
+    <div>
+      <h3>This is an early, single-source pass &mdash; treat it as a draft</h3>
+      <p>Everything below comes from one interview, Jesse Tracy's. There's no second Finance stakeholder to cross-check against, and no Legal or Product interview yet to confirm the Bill.com handoff or where the still-being-built Financial Airtable is headed. Where a stage has no real screenshot, that's flagged rather than illustrated with a guess.</p>
+    </div>
+  </div>
+
+  <ol class="stages">
+
+    <li class="stage" id="stage-1">
+      <div class="stage-marker">1</div>
+      <p class="stage-phase">Upstream</p>
+      <span class="owner">Finance (read-only)</span>
+      <h2>Order visibility</h2>
+      <p class="body">Jesse can see the orders Ad Ops books and prices &mdash; spot dates, positions, revenue, CPM &mdash; but doesn't need to edit them, and flags his own write access as an unnecessary accidental-edit risk rather than something he asked for.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_ORDERS_SPOTS}}" alt="Marly/QCode Orders screen for order 2241_Honeylove_Podscale Media_3/26/2026, showing a Spots Booked table with spot dates, positions, spot revenue, and CPM." />
+          </div>
+          <figcaption>An order's Spots Booked table &mdash; the kind of record Finance can view but doesn't write to.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Orders</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview</span>
+    </li>
+
+    <li class="stage" id="stage-2">
+      <div class="stage-marker">2</div>
+      <p class="stage-phase">Monthly</p>
+      <span class="owner">Finance</span>
+      <h2>Monthly invoice generation</h2>
+      <p class="body">At the start of each month, Jesse generates the prior month's invoices in Marly &mdash; but not as one document. The Finance nav has a separate "Generate" button per revenue type: Invoice, Bill Invoice, Social, Custom, Usage, Rewards. Each has to be run on its own.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Jesse wants one combined, client-customizable invoice instead of six separate generation paths for the same client's month.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_GENERATE_INVOICES}}" alt="Marly/QCode Finance nav on the Generate Invoices screen, showing an empty state that reads 'No invoices yet.'" />
+          </div>
+          <figcaption>Generate Invoices &mdash; one of six separate per-revenue-type generation screens.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Finance</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.39</span>
+    </li>
+
+    <li class="stage" id="stage-3">
+      <div class="stage-marker">3</div>
+      <p class="stage-phase">Edge case</p>
+      <span class="owner">Finance</span>
+      <h2>Billing-destination management</h2>
+      <p class="body">Jesse selects or edits whether a given order bills the advertiser directly or its agency &mdash; and Marly can't model anything more complex than that binary. A real case: Bubs Naturals wanted direct billing, while its agency Podscale also wanted to bill directly for the same spend. With no way to represent dual/parent-child billing, Jesse's workaround was to create a second, duplicate advertiser record &mdash; "Bubs Naturals Direct" &mdash; alongside the original.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>The workaround is a real, live record today, not a hypothetical: <span class="quote">"Bubs Naturals - DIRECT"</span> carries its own revenue and receivables totals, tracked entirely separately from the standard "Bubs Naturals" record.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_BUBS_DIRECT}}" alt="Airtable Advertisers record for 'Bubs Naturals - DIRECT' showing Total Revenue $556,500.00, Unpaid Receivables $60,000.00, Terms Net 30, and a Bill.com ID field, next to a separate smaller 'Bubs Naturals' record in the list." />
+          </div>
+          <figcaption>The actual duplicate-record workaround: "Bubs Naturals - DIRECT" next to plain "Bubs Naturals."</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Advertisers</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.40</span>
+    </li>
+
+    <li class="stage" id="stage-4">
+      <div class="stage-marker">4</div>
+      <p class="stage-phase">Ongoing</p>
+      <span class="owner">Finance</span>
+      <h2>Collections &amp; past-due tracking</h2>
+      <p class="body">Jesse monitors an invoice list for unpaid and overdue accounts &mdash; filterable by Voided / PO / Unpaid / Overdue / Requires PDF &mdash; and sends reminder emails, often batched, using a "Past Due Reminders" action built into the same screen.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_INVOICE_LIST}}" alt="Airtable Invoice List view filtered to Overdue, showing invoice ID, gross revenue, invoice status, send date, due date, and days overdue for dozens of accounts, with a Past Due Reminders button." />
+          </div>
+          <figcaption>The Overdue filter on the Invoice List &mdash; the actual collections-tracking screen.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Financial Airtable</span><span class="badge">Email</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.38</span>
+    </li>
+
+    <li class="stage stage-gap" id="stage-5">
+      <div class="stage-marker">5</div>
+      <p class="stage-phase">Downstream</p>
+      <span class="owner">Finance</span>
+      <h2>PDF invoice retrieval</h2>
+      <p class="gap-note"><strong>No screenshot for this stage</strong> &mdash; Bill.com itself wasn't shown on screen during the interview. Jesse pulls sent-invoice PDFs from Bill.com, not Marly, to attach to collections follow-ups; the PDFs live outside the system that generated the underlying invoice data.</p>
+      <div class="badges"><span class="badge">Bill.com</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview</span>
+    </li>
+
+    <li class="stage" id="stage-6">
+      <div class="stage-marker">6</div>
+      <p class="stage-phase">Monthly &mdash; top pain point</p>
+      <span class="owner">Finance</span>
+      <h2>Monthly per-show financial reporting</h2>
+      <p class="body">Jesse's biggest stated pain point: manually populating and publishing a per-show PDF financial report every month, across roughly 100 shows, sourced from Excel files an external accounting team emails in. Marly's own Payout Reports and SPAN Report screens cover part of this &mdash; per-show revenue splits into Daylight's cut vs. the show's, and a monthly US/International/Premium revenue breakdown &mdash; but the full monthly report Jesse actually sends out still gets assembled by hand.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_PAYOUT_REPORT}}" alt="Marly Finance Payout Reports screen showing 'Last Known Position Payout Report - April 2026' with Gross Revenue $32.76, Daylight Participation $0.00, Show Participation $32.76, broken into a Programmatic Revenue section." />
+          </div>
+          <figcaption>A real Payout Report &mdash; gross revenue split into Daylight's and the show's participation.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_SPAN_REPORT}}" alt="QCode SPAN Report for May 2026, a dark-theme table listing shows with US Revenue, Intl. Revenue, Premium US Revenue, Premium Intl. Revenue, and Total columns." />
+          </div>
+          <figcaption>The SPAN Report &mdash; a separate monthly per-show revenue breakdown by region/tier.</figcaption>
+        </figure>
+      </div>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Neither in-system report replaces the actual monthly per-show PDF Jesse assembles by hand from the accounting team's Excel files &mdash; the two tools don't appear to feed each other yet.</p>
+      </div>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Payout Reports</span><span class="badge">Marly/QCode &mdash; SPAN Report</span><span class="badge">Excel (external accounting team)</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.36</span>
+    </li>
+
+    <li class="stage" id="stage-7">
+      <div class="stage-marker">7</div>
+      <p class="stage-phase">Emerging</p>
+      <span class="owner">Finance</span>
+      <h2>Miscellaneous revenue tracking</h2>
+      <p class="body">A dedicated Financial Airtable, still being built out, is meant to track revenue streams outside the core order system &mdash; fed by a parsing tool "Scott" built to ingest uploaded reports (e.g. a "Cloud roll" report). Its Monthly Reports section already has a tab per client/network (Bauer Media Group, Gumball, Podroll, RedCircle, SPAN, By Podcast) &mdash; most still empty.</p>
+      <div class="friction">
+        <span class="icon">&#9888;</span>
+        <p>Jesse himself wasn't fully sure what part of Scott's parsing tool does &mdash; this piece is real but incomplete, both in data and in Jesse's own understanding of it.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_AIRTABLE_MONTHLY}}" alt="Financial Airtable Monthly Reports section, Bauer Media Group tab, showing 'No records found that match current filters.'" />
+          </div>
+          <figcaption>Bauer Media Group's tab in the Financial Airtable &mdash; one of several still empty.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Financial Airtable</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.37</span>
+    </li>
+
+    <li class="stage" id="stage-8">
+      <div class="stage-marker">8</div>
+      <p class="stage-phase">Weekly/monthly</p>
+      <span class="owner">Finance</span>
+      <h2>Internal metrics reporting</h2>
+      <p class="body">A monetization spreadsheet shared with Sales gets updated by exporting raw data out of Marly and manually pivoting it in Excel &mdash; neither Marly nor Airtable supports pivot-table export natively, so this step can't be automated as-is.</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="browser-chrome">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <img loading="lazy" decoding="async" src="{{IMG_MONETIZATION}}" alt="Google Sheets 'Daylight / Monetization' tab, showing a podcast-by-podcast revenue table with year-over-year columns and monthly breakdowns." />
+          </div>
+          <figcaption>The Daylight / Monetization Google Sheet &mdash; built by hand from a Marly export.</figcaption>
+        </figure>
+      </div>
+      <div class="badges"><span class="badge">Google Sheets</span><span class="badge">Marly/QCode export</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview &middot; combined interviews packet, p.37</span>
+    </li>
+
+    <li class="stage stage-gap" id="stage-9">
+      <div class="stage-marker">9</div>
+      <p class="stage-phase">Structural</p>
+      <span class="owner">Finance</span>
+      <h2>Broadcast-month billing reconciliation</h2>
+      <p class="gap-note"><strong>No screenshot for this stage.</strong> Some clients bill on a broadcast-month cycle rather than a calendar month; Marly defaults to calendar-month billing regardless, which causes invoices for those clients to show as falsely past-due until Jesse manually reconciles the mismatch.</p>
+      <div class="badges"><span class="badge">Marly/QCode &mdash; Finance</span></div>
+      <span class="source-tag"><span class="dot source"></span>Jesse Tracy interview</span>
+    </li>
+
+  </ol>
+
+  <aside class="callout">
+    <h3>A note on names</h3>
+    <p>This journey inherits the same unresolved system-naming cluster documented in the Sales/Ad Ops journey: Marly, Marley, QCode, Molly, Bob/Vault. Finance screenshots in this pass show both a <code>Marly</code>-branded sidebar and a <code>QCode</code>-branded (<code>app.qcodemedia.dev</code>) dark-mode Finance view for the SPAN Report &mdash; used here as "Marly/QCode" without implying either name is canonical.</p>
+  </aside>
+
+  <footer class="methodology">
+    <h3>Methodology &amp; gaps</h3>
+    <ul>
+      <li>Built from one interview &mdash; <em>Understanding User Needs w Product (Finance_ Jesse)</em> &mdash; plus 9 screenshots pulled from the combined stakeholder-interviews packet (pp.36-40). No second Finance stakeholder exists yet to corroborate or add to Jesse's account.</li>
+      <li>Two stages (PDF retrieval from Bill.com, broadcast-month reconciliation) have no supporting screenshot &mdash; the interview described them but the tool wasn't shown on screen. Flagged rather than illustrated.</li>
+      <li>This journey doesn't yet trace how Finance's invoicing connects back to the Sales/Ad Ops IO lifecycle documented in <code>journeys/sales-adops</code> &mdash; that handoff (papered order &rarr; billable revenue) is a natural next research thread, not yet interviewed on either side.</li>
+      <li>The Financial Airtable and its parsing tool are real but under-documented even to Jesse himself &mdash; treat the "miscellaneous revenue tracking" stage as the least stable part of this reconstruction.</li>
+    </ul>
+  </footer>
+
+</div>
