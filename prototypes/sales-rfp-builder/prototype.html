@@ -38,7 +38,18 @@
     --radius: .5rem;
     --radius-sm: 2px;
     --radius-md: 6px;
-    --popover-bg: var(--card-bg);
+    /* Per the user: dropdown/popover containers (.col-menu, .dd-select-listbox, .tb-value-popover — every
+       floating menu/panel in this file references --popover-bg) should be black like the page, with the
+       existing --border token providing the light edge that differentiates it — not the lighter #262626
+       "raised surface" fill Figma's own DropdownMenu component actually uses (confirmed live via
+       get_variable_defs on its dark instance: base/popover:#262626 vs base/background:#171717, with
+       base/border also #262626 — barely distinct from the popover fill itself, relying mostly on shadow/md
+       for separation there). Same "black over the confirmed lighter card token" treatment already applied to
+       the Rate Card table itself (v26) — --border now contrasts against black instead of against a
+       same-shade popover, achieving the "light border to differentiate" look with a real, already-confirmed
+       token rather than an invented one. Indirect reference (not a literal value) so it still automatically
+       tracks whichever theme's --bg is active, same as before. */
+    --popover-bg: var(--bg);
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
