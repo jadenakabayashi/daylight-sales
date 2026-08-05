@@ -302,9 +302,6 @@
     content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px;
     border: solid var(--primary-fg); border-width: 0 2px 2px 0; transform: rotate(45deg);
   }
-  .col-menu-footer { padding: 0.3rem 0.3rem 0.1rem; }
-  .col-menu-footer button { font-size: 0.76rem; color: var(--fg-muted); background: none; border: none; cursor: pointer; padding: 0.2rem 0.3rem; }
-  .col-menu-footer button:hover { color: var(--fg); text-decoration: underline; }
 
   /* ----- toolbar-level filter/sort/group (redundant with column menus, on purpose — more discoverable) ----- */
   .tb-control { position: relative; }
@@ -657,30 +654,36 @@
         <div class="tb-control" id="tb-filter">
           <button type="button" class="btn" onclick="toggleTbPanel('filter', event)">Filter ▾</button>
           <div class="col-menu tb-panel tb-panel-levels tb-panel-filter" id="tb-filter-panel">
+            <div class="view-panel-head">
+              <span>Filter</span>
+              <button type="button" class="view-reset-btn" onclick="clearFilterRows()">Reset</button>
+            </div>
             <div id="tb-filter-levels"></div>
             <button type="button" class="tb-add-level" onclick="addFilterRow()">+ Add another</button>
-            <div class="col-menu-divider"></div>
-            <div class="col-menu-footer"><button type="button" onclick="clearFilterRows()">Clear filters</button></div>
           </div>
         </div>
 
         <div class="tb-control" id="tb-sort">
           <button type="button" class="btn" onclick="toggleTbPanel('sort', event)">Sort ▾</button>
           <div class="col-menu tb-panel tb-panel-levels" id="tb-sort-panel">
+            <div class="view-panel-head">
+              <span>Sort</span>
+              <button type="button" class="view-reset-btn" onclick="clearLevels('sort')">Reset</button>
+            </div>
             <div id="tb-sort-levels"></div>
             <button type="button" class="tb-add-level" onclick="addLevel('sort')">+ Add another</button>
-            <div class="col-menu-divider"></div>
-            <div class="col-menu-footer"><button type="button" onclick="clearLevels('sort')">Clear sort</button></div>
           </div>
         </div>
 
         <div class="tb-control" id="tb-group">
           <button type="button" class="btn" onclick="toggleTbPanel('group', event)">Group ▾</button>
           <div class="col-menu tb-panel tb-panel-levels" id="tb-group-panel">
+            <div class="view-panel-head">
+              <span>Group</span>
+              <button type="button" class="view-reset-btn" onclick="clearLevels('group')">Reset</button>
+            </div>
             <div id="tb-group-levels"></div>
             <button type="button" class="tb-add-level" onclick="addLevel('group')">+ Add another</button>
-            <div class="col-menu-divider"></div>
-            <div class="col-menu-footer"><button type="button" onclick="clearLevels('group')">Clear group</button></div>
           </div>
         </div>
 
