@@ -2,7 +2,9 @@
 
 First interactive prototype (not a journey map) built from this project — a functional simulation of the Vault Rate Card → RFP intake flow described in `journeys/sales/notes.md` and `journeys/sales-adops/notes.md`, extended one step further than either of those documents current cover.
 
-Last updated: 2026-08-03 (v29 — Filter/Sort/Group toolbar panels now use View's header+Reset treatment (`.view-panel-head`) instead of their own bottom "Clear X" footer button; removed the now-dead `.col-menu-footer` CSS.
+Last updated: 2026-08-03 (v33 — reverted the v30-v32 search+checklist redesign of Filter/Sort/Group per the user ("not working for filter/group/sort") — back to the pre-v30 dropdown-row + "+ Add another" pattern, with v29's header+Reset treatment kept. Those three commits were never pushed, so this was a clean `git reset --hard` back to v29, not a hand-rewritten revert.
+
+v29 — Filter/Sort/Group toolbar panels now use View's header+Reset treatment (`.view-panel-head`) instead of their own bottom "Clear X" footer button; removed the now-dead `.col-menu-footer` CSS.
 
 v28 — table-wrap's height is now set in JS (`sizeTableWrap()`), not the v27 CSS vh/flex chain — measures `window.innerHeight` directly with a 640px floor, re-run on resize and every render. Safer for this file's actual deployment as a Claude Artifact iframe, where `100vh` doesn't necessarily track the visible panel the way it does in a normal tab. Verified sticky header and horizontal scroll both still work under the new sizing.
 
