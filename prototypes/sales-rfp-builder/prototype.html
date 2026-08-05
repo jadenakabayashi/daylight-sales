@@ -408,18 +408,29 @@
   .dd-select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-select-value.is-placeholder { color: var(--fg-muted); }
   .dd-select-chevron { flex: none; color: var(--fg-muted); font-size: 0.75em; }
+  /* The search box (when searchable) is a fixed header — .dd-select-items, not this element, scrolls — so a
+     long option list doesn't push the search input itself out of view. */
   .dd-select-listbox {
-    display: none; position: fixed; z-index: 60; min-width: 160px; max-height: 260px; overflow-y: auto;
+    display: none; position: fixed; z-index: 60; min-width: 220px;
     background: var(--popover-bg); border: 1px solid var(--border); border-radius: var(--radius-md);
     box-shadow: 0 2px 4px -1px rgba(0,0,0,0.06), 0 4px 6px -1px rgba(0,0,0,0.1); padding: 4px;
   }
   .dd-select-listbox.is-open { display: block; }
+  .dd-select-items { max-height: 260px; overflow-y: auto; }
+  /* Roomier row padding, referencing a screenshot of a real Combobox the user shared — same reasoning as
+     the Filter/Sort/Group checklist rows: more comfortable to scan/click, checkbox/no-checkbox aside. */
   .dd-select-item {
-    display: flex; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 4px 6px; border-radius: var(--radius-md); font-size: 14px; cursor: pointer; color: var(--fg);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 12px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; color: var(--fg);
   }
   .dd-select-item:hover { background: var(--muted-bg); }
   .dd-select-check { color: var(--fg-muted); font-size: 0.85em; }
+  /* Embedded/filled search look (no border, filled --muted-bg) — matches the reference screenshot's own
+     "Search categories" box, and reused for both the category Combobox here and the Filter/values checklist
+     search elsewhere in this file. */
+  .dropdown-search { display: flex; align-items: center; gap: 8px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 8px 10px; margin: 0 0 4px; }
+  .dropdown-search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 14px; }
+  .dropdown-search input::placeholder { color: var(--fg-muted); }
 
   /* Table/Cell, Size=Default (node 190:901): 52px fixed height + 8px padding on all sides — a real sizing
      token in this component (Size=Default/md/lg are 52/72/96px), not incidental to text+padding. */
@@ -6084,23 +6095,39 @@ function onFilterRowMultiChange(index, key, value, checked){
   if (btn) btn.textContent = filterValueSummary(cols().find(c => c.key === key)) + " ▾";
 }
 
-/* ----- Custom Select engine (real Select component) — backs the category/direction pickers below.
-   `onPickFn`/`onPickArgs` let each instance dispatch to its own existing state-change handler (the same
-   ones the native <selects> used to call via onchange) without a bespoke callback per call site. */
+/* ----- Custom Select engine (real Combobox/Select components) — backs the category/direction pickers
+   below. `onPickFn`/`onPickArgs` let each instance dispatch to its own existing state-change handler (the
+   same ones the native <selects> used to call via onchange) without a bespoke callback per call site.
+   `searchable` (default true) renders a real Combobox — a search box filtering the option list live,
+   referencing a screenshot of one the user shared — pass {searchable:false} for short fixed-option pickers
+   (e.g. the 2-option direction select) where a search box would be overkill, matching that same screenshot's
+   own plain "Set status ▾" trigger alongside its Combobox. */
 let openCustomSelectId = null;
 window.__ddSelects = window.__ddSelects || {};
-function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs){
-  window.__ddSelects[id] = { onPickFn, onPickArgs };
+function buildCustomSelectItems(id, query){
+  const entry = window.__ddSelects[id];
+  const q = query.toLowerCase();
+  const filtered = query ? entry.options.filter(o => o.label.toLowerCase().includes(q)) : entry.options;
+  return filtered.length ? filtered.map(o => `<div class="dd-select-item" role="option" aria-selected="${o.value===entry.value}" onclick="event.stopPropagation(); pickCustomSelect('${id}', '${o.value}')">
+      <span>${esc(o.label)}</span>${o.value===entry.value ? `<span class="dd-select-check">✓</span>` : ""}
+    </div>`).join("") : `<div class="empty-note" style="padding:0.4rem 0.6rem;">No matches.</div>`;
+}
+function filterCustomSelectItems(id, query){
+  document.getElementById("ddsel-items-" + id).innerHTML = buildCustomSelectItems(id, query);
+}
+function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs, opts){
+  const searchable = !opts || opts.searchable !== false;
+  window.__ddSelects[id] = { onPickFn, onPickArgs, options, value };
   const selected = options.find(o => o.value === value);
-  const items = options.map(o => `<div class="dd-select-item" role="option" aria-selected="${o.value===value}" onclick="event.stopPropagation(); pickCustomSelect('${id}', '${o.value}')">
-      <span>${esc(o.label)}</span>${o.value===value ? `<span class="dd-select-check">✓</span>` : ""}
-    </div>`).join("");
   return `<div class="dd-select" data-select-id="${id}">
     <button type="button" class="dd-select-trigger" onclick="toggleCustomSelect(event, '${id}')">
       <span class="dd-select-value${selected ? "" : " is-placeholder"}">${esc(selected ? selected.label : placeholder)}</span>
       <span class="dd-select-chevron">▾</span>
     </button>
-    <div class="dd-select-listbox" id="ddsel-${id}" role="listbox">${items}</div>
+    <div class="dd-select-listbox" id="ddsel-${id}" role="listbox">
+      ${searchable ? `<div class="dropdown-search"><span>🔍</span><input type="text" placeholder="Search categories…" oninput="filterCustomSelectItems('${id}', this.value)"></div>` : ""}
+      <div class="dd-select-items" id="ddsel-items-${id}">${buildCustomSelectItems(id, "")}</div>
+    </div>
   </div>`;
 }
 function toggleCustomSelect(event, id){
@@ -6115,10 +6142,16 @@ function toggleCustomSelect(event, id){
     listbox.style.minWidth = btn.width + "px";
     listbox.classList.add("is-open");
     openCustomSelectId = id;
+    const searchInput = listbox.querySelector(".dropdown-search input");
+    if (searchInput) searchInput.focus();
   }
 }
 function closeAllCustomSelects(){
-  document.querySelectorAll(".dd-select-listbox.is-open").forEach(el => el.classList.remove("is-open"));
+  document.querySelectorAll(".dd-select-listbox.is-open").forEach(el => {
+    el.classList.remove("is-open");
+    const input = el.querySelector(".dropdown-search input");
+    if (input && input.value){ input.value = ""; const id = el.id.slice("ddsel-".length); filterCustomSelectItems(id, ""); }
+  });
   openCustomSelectId = null;
 }
 function pickCustomSelect(id, value){
@@ -6130,10 +6163,16 @@ document.addEventListener("click", (e) => {
   if (!e.target.closest(".dd-select")) closeAllCustomSelects();
 });
 
+/* Per the user, referencing a Combobox screenshot: only the category picker shows on a blank row — the
+   criteria control and remove button appear alongside it once a category is actually selected, rather than
+   all three showing at once (a criteria control with nothing to configure yet, and a remove button with
+   nothing meaningful to remove). */
 function buildFilterLevelRow(index, key){
-  const col = key ? cols().find(c => c.key === key) : null;
+  const fieldSelect = buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Select category…", "onFilterRowFieldChange", [index]);
+  if (!key) return `<div class="tb-filter-row">${fieldSelect}</div>`;
+  const col = cols().find(c => c.key === key);
   return `<div class="tb-filter-row">
-    ${buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Select category…", "onFilterRowFieldChange", [index])}
+    ${fieldSelect}
     ${buildFilterRowCriteria(col, index)}
     <button type="button" class="tb-level-remove" onclick="removeFilterRow(${index})" title="Remove">✕</button>
   </div>`;
@@ -6182,11 +6221,17 @@ function clearFilterRows(){
 function levelColumnOptions(kind){
   return kind === "group" ? cols().filter(c => c.groupable) : cols();
 }
+/* Per the user, referencing a Combobox screenshot: only the category picker shows on a blank row — the
+   direction dropdown and remove button appear alongside it once a category is actually selected. The
+   direction picker itself is {searchable:false} (only 2 options — a search box would be overkill), matching
+   that same screenshot's plain "Set status ▾" trigger sitting next to its searchable category Combobox. */
 function buildLevelRow(kind, index, row){
   const options = levelColumnOptions(kind);
+  const fieldSelect = buildCustomSelect(kind + "-field-" + index, options.map(c => ({value: c.key, label: c.label})), row.field, "Select category…", "onLevelFieldChange", [kind, index]);
+  if (!row.field) return `<div class="tb-level-row">${fieldSelect}</div>`;
   return `<div class="tb-level-row">
-    ${buildCustomSelect(kind + "-field-" + index, options.map(c => ({value: c.key, label: c.label})), row.field, "Select category…", "onLevelFieldChange", [kind, index])}
-    ${buildCustomSelect(kind + "-dir-" + index, [{value: "desc", label: "Descending"}, {value: "asc", label: "Ascending"}], row.dir || "desc", "", "onLevelDirChange", [kind, index])}
+    ${fieldSelect}
+    ${buildCustomSelect(kind + "-dir-" + index, [{value: "desc", label: "Descending"}, {value: "asc", label: "Ascending"}], row.dir || "desc", "", "onLevelDirChange", [kind, index], {searchable: false})}
     <button type="button" class="tb-level-remove" onclick="removeLevel('${kind}', ${index})" title="Remove">✕</button>
   </div>`;
 }

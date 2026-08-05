@@ -2,7 +2,9 @@
 
 First interactive prototype (not a journey map) built from this project — a functional simulation of the Vault Rate Card → RFP intake flow described in `journeys/sales/notes.md` and `journeys/sales-adops/notes.md`, extended one step further than either of those documents current cover.
 
-Last updated: 2026-08-03 (v33 — reverted the v30-v32 search+checklist redesign of Filter/Sort/Group per the user ("not working for filter/group/sort") — back to the pre-v30 dropdown-row + "+ Add another" pattern, with v29's header+Reset treatment kept. Those three commits were never pushed, so this was a clean `git reset --hard` back to v29, not a hand-rewritten revert.
+Last updated: 2026-08-03 (v34 — cleaned up the side-by-side category/direction dropdowns in Filter/Sort/Group per a Combobox screenshot the user shared. The category picker (`buildCustomSelect`) is now a real searchable Combobox — a "Search categories…" box filtering the option list live, styled with the same embedded/filled search look as the Filter values checklist. The direction picker stays a plain non-searchable dropdown (`{searchable:false}`, only 2 options), matching the screenshot's own plain "Set status ▾" trigger next to its searchable Combobox. Also: a blank row now shows only the category picker — the direction/criteria control and remove button appear alongside it only once a category is actually selected, instead of all three showing at once with nothing yet to configure.
+
+v33 — reverted the v30-v32 search+checklist redesign of Filter/Sort/Group per the user ("not working for filter/group/sort") — back to the pre-v30 dropdown-row + "+ Add another" pattern, with v29's header+Reset treatment kept. Those three commits were never pushed, so this was a clean `git reset --hard` back to v29, not a hand-rewritten revert.
 
 v29 — Filter/Sort/Group toolbar panels now use View's header+Reset treatment (`.view-panel-head`) instead of their own bottom "Clear X" footer button; removed the now-dead `.col-menu-footer` CSS.
 
