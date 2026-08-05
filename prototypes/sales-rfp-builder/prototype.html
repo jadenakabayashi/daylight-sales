@@ -200,6 +200,10 @@
 
   .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
   .search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem; background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem; }
+  /* Real lucide-search markup (confirmed live in Storybook's InputGroup story, size-4/16px, stroke=currentColor
+     inheriting the muted-foreground color already used here) — replaces the 🔍 emoji placeholder everywhere
+     a search box appears. flex:none so it doesn't get squeezed in a tight flex row. */
+  .icon-search { flex: none; }
   .search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 0.82rem; }
 
   .toolbar-hint { font-size: 0.74rem; color: var(--fg-muted); margin: -0.35rem 0 0.7rem; }
@@ -660,7 +664,7 @@
       </div>
 
       <div class="toolbar">
-        <div class="search">🔍 <input id="rc-search" type="text" placeholder="Search shows or genres…" oninput="renderRateCard()"></div>
+        <div class="search"><svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg> <input id="rc-search" type="text" placeholder="Search shows or genres…" oninput="renderRateCard()"></div>
 
         <div class="tb-control" id="tb-filter">
           <button type="button" class="btn" onclick="toggleTbPanel('filter', event)">Filter ▾</button>
@@ -6125,7 +6129,7 @@ function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs
       <span class="dd-select-chevron">▾</span>
     </button>
     <div class="dd-select-listbox" id="ddsel-${id}" role="listbox">
-      ${searchable ? `<div class="dropdown-search"><span>🔍</span><input type="text" placeholder="Search categories…" oninput="filterCustomSelectItems('${id}', this.value)"></div>` : ""}
+      ${searchable ? `<div class="dropdown-search"><svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><input type="text" placeholder="Search categories…" oninput="filterCustomSelectItems('${id}', this.value)"></div>` : ""}
       <div class="dd-select-items" id="ddsel-items-${id}">${buildCustomSelectItems(id, "")}</div>
     </div>
   </div>`;
