@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/prototypes/sales-rfp-builder/prototype.html" },
+    { "source": "/rate-card", "destination": "/prototypes/sales-rfp-builder/prototype.html" },
+    { "source": "/rfp-builder", "destination": "/prototypes/sales-rfp-builder/prototype.html" }
+  ]
+}
