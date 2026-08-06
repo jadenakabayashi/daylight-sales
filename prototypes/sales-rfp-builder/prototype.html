@@ -5747,12 +5747,24 @@ const GENRE_FILTER_OPTIONS = ["Arts","Business","Comedy","Crime","Culture","Docu
 function uniqueValues(key){
   return [...new Set(SHOWS.map(s => (s[key] ?? "(none)")))].sort();
 }
+/* Individual host names, not whole per-show host-strings — same "split, dedupe, one option per real-world
+   entity" reasoning as GENRE_FILTER_OPTIONS above (a show's own hosts field is comma-separated, e.g. "Jon
+   Stewart, Jordan Klepper, ..."), so selecting "Jon Stewart" as a filter value matches every show he's on,
+   not just shows whose hosts field is that exact full string. */
+const HOST_FILTER_OPTIONS = [...new Set(SHOWS.flatMap(s => (s.hosts || "").split(",").map(h => h.trim())).filter(Boolean))].sort();
 
 /* Generic per-column config, one entry per real column in Daylight Media Roster 7.13.26.xlsx.
    Any column can be filtered (by its type), sorted, and — where it makes sense — grouped by. */
 const RC_COLUMNS = [
-  { key: "name", label: "Name", filterKind: "text", sortKind: "string", groupable: false },
-  { key: "hosts", label: "Hosts", filterKind: "text", sortKind: "string", groupable: false },
+  /* Per the user: Name and Hosts are search selects (pick specific show(s)/host(s) from a filtered
+     checklist) rather than free-text "contains" — Hosts uses the same tokenized-options + custom `match`
+     pattern as Genre below (a show's hosts field is a comma-separated list; selecting "Jon Stewart" should
+     match every show he hosts, not just an exact full-string match), no `tags:true` since that also controls
+     cell rendering (pill chips) — this only changes the filter's own UI/matching, not how the Hosts column
+     itself displays in the table. */
+  { key: "name", label: "Name", filterKind: "multiselect", sortKind: "string", groupable: false, options: uniqueValues("name") },
+  { key: "hosts", label: "Hosts", filterKind: "multiselect", sortKind: "string", groupable: false, options: HOST_FILTER_OPTIONS,
+    match: (show, selected) => (show.hosts || "").split(",").map(h => h.trim()).some(h => selected.includes(h)) },
   { key: "genre", label: "Genre", filterKind: "multiselect", sortKind: "string", groupable: true, tags: true,
     options: GENRE_FILTER_OPTIONS,
     match: (show, selected) => selected.some(g => show.genre.toLowerCase().includes(g.toLowerCase())),
@@ -6114,13 +6126,16 @@ function buildFilterRowCriteria(col, index){
     const val = state().filters[col.key] || "yes";
     return buildCustomSelect("filter-link-" + index, [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], val, "", "onColLinkChange", [col.key, index], {searchable: false});
   }
+  /* Per the user: Name/Hosts/Genre (and, for free, every other multiselect column — Host Location, Drops,
+     etc., same shared branch) are "search selects" — a search box that filters the checklist live, so
+     picking several values out of a long list (58 show names, dozens of individual hosts) doesn't mean
+     scrolling through all of them. */
   if (col.filterKind === "multiselect"){
-    const selected = state().filters[col.key] || new Set();
     return `<div class="tb-value-control">
       <button type="button" class="tb-select tb-value-toggle" onclick="toggleFilterValuePopover(event, ${index})">${esc(filterValueSummary(col))} ▾</button>
       <div class="tb-value-popover" id="tb-value-popover-${index}">
-        <div class="col-filter-body">${col.options.map(opt => `
-          <label class="col-check-item"><input type="checkbox" value="${opt.replace(/"/g,"&quot;")}" ${selected.has(opt) ? "checked" : ""} onchange="onFilterRowMultiChange(${index}, '${col.key}', this.value, this.checked)"> ${opt}</label>`).join("")}</div>
+        <div class="dropdown-search"><svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><input type="text" placeholder="Search…" oninput="filterMultiselectOptions(${index}, '${col.key}', this.value)"></div>
+        <div class="col-filter-body" id="tb-value-options-${index}">${buildMultiselectOptionsHtml(col, index, "")}</div>
       </div>
     </div>`;
   }
@@ -6133,6 +6148,18 @@ function buildFilterRowCriteria(col, index){
   }
   const val = state().filters[col.key] || "";
   return `<input type="text" class="tb-select tb-filter-inline-text" placeholder="Contains…" value="${val.replace(/"/g,"&quot;")}" oninput="onColTextChange('${col.key}', this.value)">`;
+}
+function buildMultiselectOptionsHtml(col, index, query){
+  const selected = state().filters[col.key] || new Set();
+  const q = query.toLowerCase();
+  const filtered = query ? col.options.filter(opt => opt.toLowerCase().includes(q)) : col.options;
+  return filtered.length ? filtered.map(opt => `
+    <label class="col-check-item"><input type="checkbox" value="${opt.replace(/"/g,"&quot;")}" ${selected.has(opt) ? "checked" : ""} onchange="onFilterRowMultiChange(${index}, '${col.key}', this.value, this.checked)"> ${esc(opt)}</label>`).join("")
+    : `<div class="empty-note" style="padding:0.4rem 0.6rem;">No matches.</div>`;
+}
+function filterMultiselectOptions(index, key, query){
+  const col = cols().find(c => c.key === key);
+  document.getElementById("tb-value-options-" + index).innerHTML = buildMultiselectOptionsHtml(col, index, query);
 }
 function toggleFilterValuePopover(event, index){
   event.stopPropagation();
