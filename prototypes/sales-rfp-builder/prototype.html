@@ -330,8 +330,10 @@
      dropdown visibly resized between states. A hard width forces every row's flex:1 children to share
      exactly this space regardless of which controls are present (already min-width:0 throughout, so they
      shrink to fit rather than forcing overflow), making the panel — and the Combobox listbox sized from it —
-     truly constant across selection states, per the user's ask. */
-  .tb-control .tb-panel.tb-panel-levels { width: 320px; min-width: 320px; padding-bottom: 0.3rem; }
+     truly constant across selection states. 400px (up from 320px) — per the user, wide enough that the
+     primary and secondary selectors can be equal width both before and after selection, without either
+     needing to truncate (e.g. "Descending" no longer clips to "Descen…" the way it did at 320px). */
+  .tb-control .tb-panel.tb-panel-levels { width: 400px; min-width: 400px; padding-bottom: 0.3rem; }
   .tb-panel-label { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.4rem 0.4rem 0.3rem; font-size: 0.72rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.04em; }
   /* height:36px matches .dd-select-trigger exactly — this control sits directly beside that trigger in the
      same row (Filter's criteria control, Sort/Group's own selects reuse .dd-select-trigger already), and a
@@ -341,12 +343,12 @@
     background: var(--bg); color: var(--fg); font-size: 0.83rem; text-transform: none; letter-spacing: normal; cursor: pointer;
   }
   .tb-level-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.4rem; }
-  /* flex:none + a fixed width — not flex:1 like the secondary control — per the user: the category/search
-     field should hold its own width regardless of selection; the secondary control is the one that should
-     absorb any size difference (and can end up narrower on a tighter panel, e.g. Filter's criteria control
-     vs Sort/Group's direction picker). Applies to both Sort/Group's .tb-level-row and Filter's .tb-filter-row
-     (below) — the category select is always the first child in either. */
-  .tb-level-row .dd-select:first-child, .tb-filter-row .dd-select:first-child { flex: none; width: 160px; }
+  /* Category and secondary both plain flex:1 (the .dd-select base rule already gives them that) — per the
+     user, with the panel now widened to 400px there's enough room for both to be equal width, so the
+     earlier fixed-160px-category override (which existed only to stop the two from splitting unevenly at
+     320px) is no longer needed. Both stay equal and stable across selection states already, since the
+     remove button's space is reserved regardless (see .tb-level-remove.is-invisible) and the panel itself
+     has a hard width, not just a floor. */
   .tb-level-remove {
     flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border);
     background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.7rem; line-height: 1;
@@ -6103,6 +6105,15 @@ function filterValueSummary(col){
 }
 function buildFilterRowCriteria(col, index){
   if (!col) return `<div class="tb-filter-value-placeholder"></div>`;
+  /* Per the user: link columns (One Sheet, Apple RSS, YouTube, Sample Ad) filter by whether a real link
+     exists, not by text-contains — a URL isn't something a user meaningfully searches by substring. Checked
+     ahead of filterKind (these columns are still declared filterKind:"text", which only matters for the
+     generic per-column-menu filter body elsewhere — this toolbar criteria control is overridden by col.link
+     regardless of that declared kind). */
+  if (col.link){
+    const val = state().filters[col.key] || "yes";
+    return buildCustomSelect("filter-link-" + index, [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], val, "", "onColLinkChange", [col.key, index], {searchable: false});
+  }
   if (col.filterKind === "multiselect"){
     const selected = state().filters[col.key] || new Set();
     return `<div class="tb-value-control">
@@ -6277,6 +6288,11 @@ function onFilterRowFieldChange(index, value){
   if (oldKey && oldKey !== value) delete state().filters[oldKey];
   arr[index] = value || null;
   for (let i = arr.length - 2; i >= 0; i--){ if (!arr[i]) arr.splice(i, 1); }
+  /* Same reasoning as filterByColumn: a link column's criteria control shows a non-empty "Yes" default the
+     moment it appears, so persist that immediately rather than leaving the table unfiltered until the user
+     happens to touch the Yes/No control. */
+  const col = value ? cols().find(c => c.key === value) : null;
+  if (col && col.link && state().filters[value] === undefined) state().filters[value] = "yes";
   renderFilterLevels();
   renderRateCard();
 }
@@ -6336,6 +6352,10 @@ function onLevelFieldChange(kind, index, value){
 }
 function onLevelDirChange(kind, index, value){
   state()[kind][index].dir = value;
+  /* renderLevels (not just renderRateCard) — this is a non-searchable custom select, so its trigger's own
+     displayed label doesn't update itself on pick the way a searchable Combobox's input does; found this
+     while adding the link Yes/No picker below, which is the same kind of non-searchable select. */
+  renderLevels(kind);
   renderRateCard();
 }
 function addLevel(kind){
@@ -6380,6 +6400,11 @@ function onColTextChange(key, value){
   if (value) state().filters[key] = value; else delete state().filters[key];
   renderRateCard();
 }
+function onColLinkChange(key, index, value){
+  state().filters[key] = value;
+  renderFilterLevels();
+  renderRateCard();
+}
 function quickSort(key){
   const sole = state().sort.length === 1 && state().sort[0].field === key ? state().sort[0] : null;
   if (sole) sole.dir = sole.dir === "asc" ? "desc" : "asc";
@@ -6406,6 +6431,12 @@ function filterByColumn(key){
     if (arr.length === 1 && !arr[0]) arr[0] = key;
     else arr.push(key);
   }
+  /* Link columns show a non-empty "Yes" default in the criteria control the moment the row appears (unlike
+     range/text, which start genuinely blank) — persist that default into state right away too, so the table
+     is actually filtered to match what's displayed instead of silently filtering nothing until the user
+     happens to interact with the Yes/No control. */
+  const col = cols().find(c => c.key === key);
+  if (col && col.link && state().filters[key] === undefined) state().filters[key] = "yes";
   renderRateCard();
   openTbPanel("filter");
 }
@@ -6440,7 +6471,12 @@ function removeRcChip(kind, key, value){
   renderRateCard();
 }
 
+/* A real link, not just a truthy value — some link columns hold non-URL fallback text (e.g. "TBD", or the
+   whyShow/sampleAdUrl data-shift bug fixed earlier), which should count as "No" here just like renderCell's
+   own link branch already treats it as not a real link. */
+function hasLink(v){ return typeof v === "string" && /^https?:\/\//.test(v); }
 function matchesColumnFilter(col, show, filterValue){
+  if (col.link) return ((filterValue || "yes") === "yes") === hasLink(show[col.key]);
   if (col.filterKind === "text") return show[col.key] != null && show[col.key].toString().toLowerCase().includes(filterValue.toLowerCase());
   if (col.filterKind === "multiselect"){
     const selected = [...filterValue];
@@ -6477,7 +6513,7 @@ function renderCell(col, s){
     /* Defensive: a non-URL value here means bad/shifted source data (see whyShow/sampleAdUrl fix,
        2026-08-03) rather than a real link — truncate it like every other cell instead of letting an
        arbitrarily long string wrap unbounded and blow out the row's height. */
-    return /^https?:\/\//.test(v) ? `<a href="${esc(v)}" target="_blank" rel="noopener" class="cell-link">Open ↗</a>` : `<div class="cell-truncate" title="${esc(v)}">${v}</div>`;
+    return hasLink(v) ? `<a href="${esc(v)}" target="_blank" rel="noopener" class="cell-link">Open ↗</a>` : `<div class="cell-truncate" title="${esc(v)}">${v}</div>`;
   }
   if (col.listCount){
     const list = s[col.key] || [];
@@ -6566,7 +6602,8 @@ function renderRateCard(){
   columns.forEach(col => {
     const fv = st.filters[col.key];
     if (fv === undefined) return;
-    if (col.filterKind === "multiselect") fv.forEach(v => chips.push({kind: "filter", key: col.key, value: v, label: `${col.label}: ${v}`}));
+    if (col.link) chips.push({kind: "filter", key: col.key, label: `${col.label}: ${fv === "no" ? "No" : "Yes"}`});
+    else if (col.filterKind === "multiselect") fv.forEach(v => chips.push({kind: "filter", key: col.key, value: v, label: `${col.label}: ${v}`}));
     else if (col.filterKind === "range") chips.push({kind: "filter", key: col.key, label: `${col.label}: ${fv.min ?? "any"}–${fv.max ?? "any"}`});
     else if (col.filterKind === "text") chips.push({kind: "filter", key: col.key, label: `${col.label} contains "${fv}"`});
   });
