@@ -325,10 +325,19 @@
      RIGHT edge and open leftward — anchoring left (the .col-menu default) would run them off the
      window whenever the toolbar is narrower than button-position + panel-width. */
   .tb-control .tb-panel { left: auto; right: 0; min-width: 240px; }
-  .tb-control .tb-panel.tb-panel-levels { min-width: 320px; padding-bottom: 0.3rem; }
+  /* width, not just min-width — with only a floor, the panel grew wider once a category was selected (a
+     real control replacing the disabled "--" placeholder needed more room than the placeholder did), so the
+     dropdown visibly resized between states. A hard width forces every row's flex:1 children to share
+     exactly this space regardless of which controls are present (already min-width:0 throughout, so they
+     shrink to fit rather than forcing overflow), making the panel — and the Combobox listbox sized from it —
+     truly constant across selection states, per the user's ask. */
+  .tb-control .tb-panel.tb-panel-levels { width: 320px; min-width: 320px; padding-bottom: 0.3rem; }
   .tb-panel-label { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.4rem 0.4rem 0.3rem; font-size: 0.72rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  /* height:36px matches .dd-select-trigger exactly — this control sits directly beside that trigger in the
+     same row (Filter's criteria control, Sort/Group's own selects reuse .dd-select-trigger already), and a
+     mismatched height there made the row look uneven/unaligned. */
   .tb-select {
-    border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.4rem 0.5rem;
+    height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 0.5rem;
     background: var(--bg); color: var(--fg); font-size: 0.83rem; text-transform: none; letter-spacing: normal; cursor: pointer;
   }
   .tb-level-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.4rem; }
@@ -352,11 +361,13 @@
   /* Same side-by-side paradigm as Sort/Group's [category][direction] row — here the second control is
      whatever criteria fits the column's type: inline range/text, or a nested dropdown for multiselect
      (a checklist doesn't fit inline, so it opens its own small popover under a summary button). */
-  .tb-filter-row { display: flex; align-items: flex-start; gap: 0.4rem; padding: 0.35rem 0.4rem; }
+  /* align-items:center (not the old flex-start) — with every control in the row now a consistent 36px tall,
+     centering keeps the search box, criteria control, and remove button on one shared visual baseline
+     instead of all lining up at the top and drifting apart at the bottom. */
+  .tb-filter-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; }
   .tb-value-control { position: relative; flex: 1; min-width: 0; }
   .tb-value-toggle {
-    width: 100%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    display: block;
+    width: 100%; display: flex; align-items: center; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   /* Fixed (not absolute) and positioned in JS from the toggle button's own rect — the filter panel
      scrolls (.tb-panel-filter's overflow-y:auto), and an absolutely-positioned popover nested inside a
@@ -433,8 +444,10 @@
   .dd-select-search-input { border: 0; outline: 0; background: transparent; flex: 1; min-width: 0; height: 100%; color: var(--fg); font-size: 14px; padding: 0; }
   .dd-select-search-input::placeholder { color: var(--fg-muted); }
   /* The second slot (direction/criteria) before a category is chosen — a real element, not hidden, matching
-     the reference's "Initial state" showing a disabled "--" box beside the category picker from the start. */
-  .dd-select-trigger.is-disabled { cursor: default; color: var(--fg-muted); }
+     the reference's "Initial state" showing a disabled "--" box beside the category picker from the start.
+     opacity:0.5 + cursor:not-allowed is the real Select/Input disabled treatment — confirmed live in
+     Storybook (ui-select--disabled: same border/bg/text colors as enabled, just 50% opacity), not invented. */
+  .dd-select-trigger.is-disabled { opacity: 0.5; cursor: not-allowed; }
   .dd-select-trigger.is-disabled:hover { background: transparent; }
   /* The search box (when searchable) is a fixed header — .dd-select-items, not this element, scrolls — so a
      long option list doesn't push the search input itself out of view. */
@@ -6169,10 +6182,12 @@ function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs
 }
 /* Width: a searchable Combobox's own trigger is only as wide as its slot in the row (it shares the row with
    the second control + remove button, e.g. ~165px of a 320px panel) — sizing the listbox to just the trigger
-   made it noticeably narrower than the panel around it and cramped long column labels. Widen it to the whole
-   row instead (still positioned to open directly under the trigger, not the row). Non-searchable selects
-   (the 2-option direction picker) keep sizing to their own trigger — a small, fixed option set doesn't need
-   the extra width. */
+   made it noticeably narrower than the panel around it and cramped long column labels. Sized to the PANEL
+   (inset by its own 4px padding), not the row itself: the row's width varies with its own content (no remove
+   button pre-selection, different criteria-control types for Filter), and sizing to it made the open dropdown
+   a different width depending on selection state — the panel's CSS min-width doesn't change, so this stays
+   constant regardless. Non-searchable selects (the 2-option direction picker) keep sizing to their own
+   trigger — a small, fixed option set doesn't need the extra width. */
 function openCustomSelect(id){
   if (openCustomSelectId === id) return;
   closeAllCustomSelects();
@@ -6180,8 +6195,15 @@ function openCustomSelect(id){
   const listbox = document.getElementById("ddsel-" + id);
   const trigger = document.querySelector(`[data-select-id="${id}"] .dd-select-trigger`);
   const triggerRect = trigger.getBoundingClientRect();
-  const row = entry.searchable ? trigger.closest(".tb-level-row, .tb-filter-row") : null;
-  const widthRect = row ? row.getBoundingClientRect() : triggerRect;
+  let widthRect = triggerRect;
+  if (entry.searchable){
+    const panel = trigger.closest(".tb-panel");
+    if (panel){
+      const panelRect = panel.getBoundingClientRect();
+      const panelPadding = 4;
+      widthRect = { left: panelRect.left + panelPadding, width: panelRect.width - panelPadding * 2 };
+    }
+  }
   listbox.style.top = (triggerRect.bottom + 4) + "px";
   listbox.style.left = widthRect.left + "px";
   listbox.style.minWidth = widthRect.width + "px";
@@ -6219,7 +6241,7 @@ document.addEventListener("click", (e) => {
 /* Per the user's reference screenshot: both slots show side by side from the start — the second one (here,
    the filter criteria) renders as a real but disabled "--" placeholder box until a category is actually
    chosen, rather than being absent. Remove stays hidden on a blank row (nothing meaningful to remove yet). */
-const disabledSecondSlot = `<div class="dd-select"><div class="dd-select-trigger is-disabled"><span class="dd-select-value is-placeholder">--</span></div></div>`;
+const disabledSecondSlot = `<div class="dd-select"><div class="dd-select-trigger is-disabled" aria-disabled="true"><span class="dd-select-value is-placeholder">--</span></div></div>`;
 function buildFilterLevelRow(index, key){
   const fieldSelect = buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Search…", "onFilterRowFieldChange", [index]);
   const col = key ? cols().find(c => c.key === key) : null;
