@@ -6147,7 +6147,7 @@ function filterCustomSelectItems(id, query){
 const searchIconSvg = `<svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>`;
 function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs, opts){
   const searchable = !opts || opts.searchable !== false;
-  window.__ddSelects[id] = { onPickFn, onPickArgs, options, value };
+  window.__ddSelects[id] = { onPickFn, onPickArgs, options, value, searchable };
   const selected = options.find(o => o.value === value);
   const trigger = searchable
     ? `<div class="dd-select-trigger dd-select-trigger-search">
@@ -6167,15 +6167,24 @@ function buildCustomSelect(id, options, value, placeholder, onPickFn, onPickArgs
     </div>
   </div>`;
 }
+/* Width: a searchable Combobox's own trigger is only as wide as its slot in the row (it shares the row with
+   the second control + remove button, e.g. ~165px of a 320px panel) — sizing the listbox to just the trigger
+   made it noticeably narrower than the panel around it and cramped long column labels. Widen it to the whole
+   row instead (still positioned to open directly under the trigger, not the row). Non-searchable selects
+   (the 2-option direction picker) keep sizing to their own trigger — a small, fixed option set doesn't need
+   the extra width. */
 function openCustomSelect(id){
   if (openCustomSelectId === id) return;
   closeAllCustomSelects();
+  const entry = window.__ddSelects[id];
   const listbox = document.getElementById("ddsel-" + id);
   const trigger = document.querySelector(`[data-select-id="${id}"] .dd-select-trigger`);
-  const rect = trigger.getBoundingClientRect();
-  listbox.style.top = (rect.bottom + 4) + "px";
-  listbox.style.left = rect.left + "px";
-  listbox.style.minWidth = rect.width + "px";
+  const triggerRect = trigger.getBoundingClientRect();
+  const row = entry.searchable ? trigger.closest(".tb-level-row, .tb-filter-row") : null;
+  const widthRect = row ? row.getBoundingClientRect() : triggerRect;
+  listbox.style.top = (triggerRect.bottom + 4) + "px";
+  listbox.style.left = widthRect.left + "px";
+  listbox.style.minWidth = widthRect.width + "px";
   listbox.classList.add("is-open");
   openCustomSelectId = id;
   filterCustomSelectItems(id, "");
@@ -6212,7 +6221,7 @@ document.addEventListener("click", (e) => {
    chosen, rather than being absent. Remove stays hidden on a blank row (nothing meaningful to remove yet). */
 const disabledSecondSlot = `<div class="dd-select"><div class="dd-select-trigger is-disabled"><span class="dd-select-value is-placeholder">--</span></div></div>`;
 function buildFilterLevelRow(index, key){
-  const fieldSelect = buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Search categories…", "onFilterRowFieldChange", [index]);
+  const fieldSelect = buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Search…", "onFilterRowFieldChange", [index]);
   const col = key ? cols().find(c => c.key === key) : null;
   return `<div class="tb-filter-row">
     ${fieldSelect}
@@ -6271,7 +6280,7 @@ function levelColumnOptions(kind){
    stays hidden on a blank row (nothing meaningful to remove yet). */
 function buildLevelRow(kind, index, row){
   const options = levelColumnOptions(kind);
-  const fieldSelect = buildCustomSelect(kind + "-field-" + index, options.map(c => ({value: c.key, label: c.label})), row.field, "Search categories…", "onLevelFieldChange", [kind, index]);
+  const fieldSelect = buildCustomSelect(kind + "-field-" + index, options.map(c => ({value: c.key, label: c.label})), row.field, "Search…", "onLevelFieldChange", [kind, index]);
   const dirSelect = row.field
     ? buildCustomSelect(kind + "-dir-" + index, [{value: "desc", label: "Descending"}, {value: "asc", label: "Ascending"}], row.dir || "desc", "", "onLevelDirChange", [kind, index], {searchable: false})
     : disabledSecondSlot;
