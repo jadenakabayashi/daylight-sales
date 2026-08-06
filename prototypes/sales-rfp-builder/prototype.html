@@ -750,7 +750,6 @@
           </div>
         </div>
 
-        <button type="button" class="btn ghost" id="rc-clear-btn" onclick="clearRcFilters()" style="display:none;">Clear all</button>
       </div>
       <div class="toolbar-hint">Use Filter / Sort / Group above for quick access, or click any column name — every column supports all three either way.</div>
 
@@ -6576,7 +6575,6 @@ function renderRateCard(){
     chipRow.style.display = "none";
     chipRow.innerHTML = "";
   }
-  document.getElementById("rc-clear-btn").style.display = chips.length ? "" : "none";
   syncToolbarControls();
   sizeTableWrap();
 }
