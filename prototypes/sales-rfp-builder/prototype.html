@@ -272,7 +272,9 @@
   .col-th-label { cursor: pointer; user-select: none; display: inline-flex; align-items: center; }
   .col-th-label:hover { color: var(--fg); }
   .col-th.has-filter .col-th-label, .col-th.has-filter .col-menu-btn { color: var(--primary); }
-  .col-th.is-grouped .col-th-label { color: var(--success); }
+  /* --primary (not --success/green) — per the user, matches the same neutral "this column is active"
+     color the has-filter/sort-arrow states already use, rather than grouping being the one green outlier. */
+  .col-th.is-grouped .col-th-label { color: var(--primary); }
   .sort-arrow { margin-left: 0.3rem; font-size: 0.85em; opacity: 0; }
   .sort-arrow.is-active { opacity: 1; color: var(--primary); }
   .col-menu-btn {
@@ -299,7 +301,9 @@
   }
   .col-menu-item:hover { background: var(--muted-bg); }
   .col-menu-item.is-active { color: var(--primary); font-weight: 600; }
-  .col-menu-item.is-active-group { color: var(--success); font-weight: 600; }
+  /* --primary (not --success/green) — same reasoning as .col-th.is-grouped above: this "Grouped by this
+     column" menu item was the other remaining green spot for the grouping feature. */
+  .col-menu-item.is-active-group { color: var(--primary); font-weight: 600; }
   .col-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
   .col-filter-body { padding: 4px; max-height: 220px; overflow-y: auto; }
   .col-check-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 14px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; }
