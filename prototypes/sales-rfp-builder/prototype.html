@@ -347,6 +347,11 @@
     background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.7rem; line-height: 1;
   }
   .tb-level-remove:hover { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
+  /* visibility:hidden (not display:none/absent) on a blank row — it still occupies its 22px + gap, so the
+     two flex:1 fields beside it never need to resize when it appears/disappears on selection. Per the user:
+     field widths shouldn't change on selection; they should already be sized for whichever state needs the
+     most room. */
+  .tb-level-remove.is-invisible { visibility: hidden; cursor: default; }
   .tb-add-level {
     display: block; width: calc(100% - 0.8rem); margin: 0.2rem 0.4rem 0.3rem; text-align: left;
     border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 0.4rem 0.6rem;
@@ -6239,7 +6244,9 @@ document.addEventListener("click", (e) => {
 
 /* Per the user's reference screenshot: both slots show side by side from the start — the second one (here,
    the filter criteria) renders as a real but disabled "--" placeholder box until a category is actually
-   chosen, rather than being absent. Remove stays hidden on a blank row (nothing meaningful to remove yet). */
+   chosen, rather than being absent. Remove is always rendered too (invisible, not absent, on a blank row) —
+   see .tb-level-remove.is-invisible above: keeping its layout space reserved means the two flex:1 fields
+   beside it are never asked to resize just because a category got picked. */
 const disabledSecondSlot = `<div class="dd-select"><div class="dd-select-trigger is-disabled" aria-disabled="true"><span class="dd-select-value is-placeholder">--</span></div></div>`;
 function buildFilterLevelRow(index, key){
   const fieldSelect = buildCustomSelect("filter-field-" + index, cols().map(c => ({value: c.key, label: c.label})), key, "Search…", "onFilterRowFieldChange", [index]);
@@ -6247,7 +6254,7 @@ function buildFilterLevelRow(index, key){
   return `<div class="tb-filter-row">
     ${fieldSelect}
     ${col ? buildFilterRowCriteria(col, index) : disabledSecondSlot}
-    ${key ? `<button type="button" class="tb-level-remove" onclick="removeFilterRow(${index})" title="Remove">✕</button>` : ""}
+    <button type="button" class="tb-level-remove${key ? "" : " is-invisible"}" onclick="removeFilterRow(${index})" title="Remove" ${key ? "" : "tabindex=\"-1\" aria-hidden=\"true\""}>✕</button>
   </div>`;
 }
 function renderFilterLevels(){
@@ -6297,8 +6304,9 @@ function levelColumnOptions(kind){
 /* Per the user's reference screenshot: both slots show side by side from the start — the direction picker
    renders as a real but disabled "--" placeholder box until a category is chosen, rather than being absent.
    Once chosen, it's {searchable:false} (only 2 options — a search box would be overkill), matching the
-   screenshot's plain "Set status ▾" trigger sitting next to its own searchable category Combobox. Remove
-   stays hidden on a blank row (nothing meaningful to remove yet). */
+   screenshot's plain "Set status ▾" trigger sitting next to its own searchable category Combobox. Remove is
+   always rendered too (invisible, not absent, on a blank row) — see .tb-level-remove.is-invisible — so its
+   reserved space keeps the two flex:1 fields from resizing when a category gets picked. */
 function buildLevelRow(kind, index, row){
   const options = levelColumnOptions(kind);
   const fieldSelect = buildCustomSelect(kind + "-field-" + index, options.map(c => ({value: c.key, label: c.label})), row.field, "Search…", "onLevelFieldChange", [kind, index]);
@@ -6308,7 +6316,7 @@ function buildLevelRow(kind, index, row){
   return `<div class="tb-level-row">
     ${fieldSelect}
     ${dirSelect}
-    ${row.field ? `<button type="button" class="tb-level-remove" onclick="removeLevel('${kind}', ${index})" title="Remove">✕</button>` : ""}
+    <button type="button" class="tb-level-remove${row.field ? "" : " is-invisible"}" onclick="removeLevel('${kind}', ${index})" title="Remove" ${row.field ? "" : "tabindex=\"-1\" aria-hidden=\"true\""}>✕</button>
   </div>`;
 }
 function renderLevels(kind){
