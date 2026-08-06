@@ -341,7 +341,12 @@
     background: var(--bg); color: var(--fg); font-size: 0.83rem; text-transform: none; letter-spacing: normal; cursor: pointer;
   }
   .tb-level-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.4rem; }
-  .tb-level-row .dd-select:first-child { flex: 1.3; }
+  /* flex:none + a fixed width — not flex:1 like the secondary control — per the user: the category/search
+     field should hold its own width regardless of selection; the secondary control is the one that should
+     absorb any size difference (and can end up narrower on a tighter panel, e.g. Filter's criteria control
+     vs Sort/Group's direction picker). Applies to both Sort/Group's .tb-level-row and Filter's .tb-filter-row
+     (below) — the category select is always the first child in either. */
+  .tb-level-row .dd-select:first-child, .tb-filter-row .dd-select:first-child { flex: none; width: 160px; }
   .tb-level-remove {
     flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border);
     background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.7rem; line-height: 1;
