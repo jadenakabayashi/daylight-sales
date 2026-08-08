@@ -268,6 +268,8 @@
   /* Sticky header needs its own opaque background (to cover rows scrolling underneath it) — matches the
      table's --bg so the header doesn't float as a lighter strip over the now-black body rows. */
   thead th { position: sticky; top: 0; height: 40px; background: var(--bg); text-align: left; font-weight: 500; color: var(--fg-muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 14px; z-index: 5; }
+  .col-th[draggable="true"] { cursor: grab; }
+  .col-th.is-dragging { opacity: 0.4; }
   .col-th-inner { display: flex; align-items: center; gap: 0.15rem; padding: 0 4px 0 8px; height: 100%; }
   .col-th-label { cursor: pointer; user-select: none; display: inline-flex; align-items: center; }
   .col-th-label:hover { color: var(--fg); }
@@ -5944,15 +5946,51 @@ function colWidth(col){
 }
 function buildRcHeader(){
   const visible = visibleCols();
-  document.getElementById("rc-colgroup").innerHTML = visible.map(col => `<col style="width:${colWidth(col)}px">`).join("");
+  const locked = lockedColKey();
+  document.getElementById("rc-colgroup").innerHTML = visible.map(col => `<col id="rccol-${col.key}" style="width:${colWidth(col)}px">`).join("");
   document.getElementById("rc-thead-row").innerHTML = visible.map(col => `
-    <th class="col-th" id="th-${col.key}">
+    <th class="col-th" id="th-${col.key}" draggable="${col.key !== locked}"
+        ondragstart="onColDragStart(event, '${col.key}')" ondragover="onColDragOver(event, '${col.key}')" ondragend="onColDragEnd()">
       <div class="col-th-inner">
         <span class="col-th-label" onclick="quickSort('${col.key}')">${col.label}<span class="sort-arrow" id="arrow-${col.key}"></span></span>
         <button type="button" class="col-menu-btn" onclick="toggleColMenu('${col.key}', event)">▾</button>
       </div>
       <div class="col-menu" id="colmenu-${col.key}"></div>
     </th>`).join("");
+}
+
+/* ----- Header drag-to-reorder: same columnView.order model + live-DOM-move-on-dragover pattern as the
+   View panel's list above, applied directly to the real header. Only the thead <th> + colgroup <col> move
+   live (cheap, ~25 nodes); the tbody itself only rebuilds once on dragend, same performance rationale as
+   the View panel. Moving both th and col in lockstep keeps header labels aligned with their data column
+   throughout the drag instead of just on drop. */
+let rcColDragKey = null;
+function onColDragStart(event, key){
+  rcColDragKey = key;
+  event.dataTransfer.effectAllowed = "move";
+  event.currentTarget.classList.add("is-dragging");
+}
+function onColDragOver(event, overKey){
+  event.preventDefault();
+  if (!rcColDragKey || rcColDragKey === overKey || overKey === lockedColKey()) return;
+  const view = ensureColumnView(currentTab);
+  const from = view.order.indexOf(rcColDragKey);
+  const to = view.order.indexOf(overKey);
+  if (from === -1 || to === -1) return;
+  view.order.splice(from, 1);
+  view.order.splice(to, 0, rcColDragKey);
+  const draggedTh = document.getElementById("th-" + rcColDragKey);
+  const overTh = document.getElementById("th-" + overKey);
+  const draggedCol = document.getElementById("rccol-" + rcColDragKey);
+  const overCol = document.getElementById("rccol-" + overKey);
+  if (!draggedTh || !overTh || !draggedCol || !overCol) return;
+  if (from < to){ overTh.after(draggedTh); overCol.after(draggedCol); }
+  else { overTh.before(draggedTh); overCol.before(draggedCol); }
+}
+function onColDragEnd(){
+  rcColDragKey = null;
+  document.querySelectorAll(".col-th.is-dragging").forEach(el => el.classList.remove("is-dragging"));
+  renderRateCard();
 }
 
 /* ----- View panel: drag-to-reorder (native HTML5 DnD, live-reorders the panel list on dragover; the
