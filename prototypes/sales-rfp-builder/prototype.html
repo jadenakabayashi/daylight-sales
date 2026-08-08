@@ -7095,7 +7095,7 @@ function showCard(e){
       ${chip}
     </div>
     ${e.reasons.map(r => `<div class="sc-reason ${r.kind}">${r.kind === "good" ? "✓" : (r.kind === "bad" ? "✕" : "!")}<span>${r.text}${r.sim ? '<span class="sim">Simulated for demo — not a real conflict on file</span>' : ''}</span></div>`).join("")}
-    <div class="sc-actions"><button type="button" class="sc-override-btn${def && !included ? " is-removed" : ""}${!def && included ? " is-overridden" : ""}" onclick="toggleOverride(${JSON.stringify(s.name)}, ${def})">${btnLabel}</button></div>
+    <div class="sc-actions"><button type="button" class="sc-override-btn${def && !included ? " is-removed" : ""}${!def && included ? " is-overridden" : ""}" onclick='toggleOverride(${JSON.stringify(s.name)}, ${def})'>${btnLabel}</button></div>
   </div>`;
 }
 
