@@ -737,7 +737,7 @@
     <div class="nav-group" id="nav-inventory">
       <div class="nav-item is-clickable" id="nav-item-inventory"><span class="ic">&#9707;</span> Inventory</div>
       <div class="nav-sub">
-        <div class="nav-item is-clickable is-active" id="nav-item-ratecard" onclick="closeRfpModal(); switchScreen('inventory');">Rate Card</div>
+        <div class="nav-item is-clickable is-active" id="nav-item-ratecard" onclick="closeRfpModal(); switchToInventory();">Rate Card</div>
         <div class="nav-item">Fill Status</div>
         <div class="nav-item">Embedded</div>
         <div class="nav-item">DAI</div>
@@ -770,7 +770,7 @@
     <section id="screen-ratecard">
       <div class="page-head">
         <div class="page-tabs" id="page-tabs">
-          <h1 onclick="switchScreen('inventory')">Inventory</h1>
+          <h1 onclick="switchToInventory()">Inventory</h1>
         </div>
         <button class="btn primary" onclick="openRfpModal()">+ New RFP</button>
       </div>
@@ -5039,16 +5039,26 @@ const APPROVAL_DB = {
 
 const TARGET_GENRE_OPTIONS = ["Health & Fitness","News","True Crime","Society & Culture","Comedy","Business","TV & Film"];
 
-/* Holds the live vetting run so overrides can re-render without re-running the engine. */
-const VET = { evaluated: [], rfp: null, overrides: {} };
+/* Multiple simultaneous rate cards, per the user: each "+ New RFP" that actually runs Vetting Pass 1 creates
+   its own card ({id, rfp, formFields, evaluated, filteredOut, overrides, sentToAdOps, activeResultTab}) in
+   RFPS rather than overwriting a single global — every card gets its own page-tab-chip, and switching tabs
+   just repoints activeRfpId and repaints the one shared #view-rfpresults DOM from that card's own data.
+   draftRfpId is separate from activeRfpId: it's set by editCurrentRfp() to say "the next finishVetting()
+   should UPDATE this specific card," vs. openRfpModal() setting it to null ("create a new one instead"). */
+let RFPS = [];
+let activeRfpId = null;
+let draftRfpId = null;
+let rfpIdCounter = 0;
+function VET(){ return RFPS.find(r => r.id === activeRfpId); }
 function defaultIncluded(bucket){ return bucket !== "eliminated"; }
 function isIncluded(e){
-  const o = VET.overrides[e.show.name];
+  const o = VET().overrides[e.show.name];
   return o !== undefined ? o : defaultIncluded(e.bucket);
 }
 function toggleOverride(name, defaultVal){
-  const current = VET.overrides[name] !== undefined ? VET.overrides[name] : defaultVal;
-  VET.overrides[name] = !current;
+  const overrides = VET().overrides;
+  const current = overrides[name] !== undefined ? overrides[name] : defaultVal;
+  overrides[name] = !current;
   renderResults();
 }
 
@@ -5065,6 +5075,7 @@ function matchesGenre(showGenre, selectedLabels){
 }
 
 function openRfpModal(){
+  draftRfpId = null; // building fresh — finishVetting() creates a new card, doesn't touch any existing one
   document.getElementById("rfp-modal").classList.add("is-open");
   document.getElementById("nav-item-sales").classList.add("is-active");
   document.body.style.overflow = "hidden";
@@ -6827,8 +6838,8 @@ function renderBulkBar(){
   if (!count){ bar.style.display = "none"; bar.innerHTML = ""; return; }
   bar.style.display = "flex";
   const onEmbedded = currentTab === "ratecard";
-  const disabled = !onEmbedded || !VET.rfp;
-  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!VET.rfp ? "Start an RFP first (+ New RFP), then add shows here" : "");
+  const disabled = !onEmbedded || !activeRfpId;
+  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!activeRfpId ? "Start an RFP first (+ New RFP), then add shows here" : `Adds to your currently open rate card (${esc(rfpTabLabel(VET()))})`);
   bar.innerHTML = `
     <span><b>${count}</b> selected</span>
     <button type="button" class="btn" onclick="clearSelection()">Clear selection</button>
@@ -6911,10 +6922,12 @@ function resetRfp(){
   document.getElementById("genre-checks").innerHTML = TARGET_GENRE_OPTIONS.map((g,i) => `
     <label class="gcheck" id="gcheck-${i}"><input type="checkbox" value="${g}" onchange="toggleGcheck(${i})"> ${g}</label>`).join("");
   document.getElementById("rfp-title").textContent = "New RFP";
-  VET.evaluated = []; VET.rfp = null; VET.overrides = {};
-  document.getElementById("cta-row").style.display = "";
-  document.getElementById("handoff-panel").style.display = "none";
-  document.getElementById("handoff-panel").innerHTML = "";
+  /* Deliberately does NOT touch RFPS/activeRfpId or the shared #view-rfpresults DOM (cta-row/handoff-panel
+     etc.) — this only clears the modal's own form for a fresh draft. It used to also wipe the single global
+     VET object, which is exactly what made multiple simultaneous rate cards impossible: opening "+ New RFP"
+     to start a second one would blow away the first. Any already-built card's results/handoff state now
+     lives on that card object and is restored by renderResults() whenever its tab is selected, untouched by
+     drafting a different one in the modal. */
 }
 function toggleGcheck(i){
   const el = document.getElementById("gcheck-" + i);
@@ -6922,6 +6935,57 @@ function toggleGcheck(i){
 }
 function selectedGenres(){
   return Array.from(document.querySelectorAll("#genre-checks input:checked")).map(i => i.value);
+}
+
+/* A full snapshot of the RFP Response form, captured at runVetting() time and stored on the card — not just
+   the subset (advertiser/agency/direct/indirect/genres/cpmMin/cpmMax) the vetting engine itself reads.
+   Needed for editCurrentRfp() to faithfully restore a SPECIFIC card's form when multiple cards exist —
+   before multi-card support, whatever was last typed just happened to still be sitting in the (never-reset
+   for editing) inputs; now that "+ New RFP" can draft an unrelated second card in between, that assumption
+   no longer holds. */
+function captureRfpFormFields(){
+  return {
+    advertiser: document.getElementById("f-advertiser").value,
+    category: document.getElementById("f-category").value,
+    agency: document.getElementById("f-agency").value,
+    direct: document.getElementById("f-direct").value,
+    indirect: document.getElementById("f-indirect").value,
+    cpmMin: document.getElementById("f-cpm-min").value,
+    cpmMax: document.getElementById("f-cpm-max").value,
+    daiSov: document.getElementById("f-dai-sov").value,
+    spot: document.getElementById("f-spot").value,
+    attribution: document.getElementById("f-attribution").value,
+    window: document.getElementById("f-window").value,
+    hostReq: document.getElementById("f-host-req").value,
+    endorsement: document.getElementById("f-endorsement").checked,
+    exclusivity: document.getElementById("f-exclusivity").checked,
+    genres: selectedGenres(),
+  };
+}
+function populateRfpFormFields(fields){
+  if (!fields) return;
+  document.getElementById("f-advertiser").value = fields.advertiser || "";
+  document.getElementById("f-category").value = fields.category || "";
+  document.getElementById("f-agency").value = fields.agency || "";
+  document.getElementById("f-direct").value = fields.direct || "";
+  document.getElementById("f-indirect").value = fields.indirect || "";
+  document.getElementById("f-cpm-min").value = fields.cpmMin || "";
+  document.getElementById("f-cpm-max").value = fields.cpmMax || "";
+  document.getElementById("f-dai-sov").value = fields.daiSov || "";
+  document.getElementById("f-spot").value = fields.spot || "";
+  document.getElementById("f-attribution").value = fields.attribution || "";
+  document.getElementById("f-window").value = fields.window || "";
+  document.getElementById("f-host-req").value = fields.hostReq || "Host Read only";
+  document.getElementById("f-endorsement").checked = !!fields.endorsement;
+  document.getElementById("f-exclusivity").checked = !!fields.exclusivity;
+  const genreSet = new Set(fields.genres || []);
+  TARGET_GENRE_OPTIONS.forEach((g, i) => {
+    const el = document.getElementById("gcheck-" + i);
+    if (!el) return;
+    const checked = genreSet.has(g);
+    el.querySelector("input").checked = checked;
+    el.classList.toggle("is-checked", checked);
+  });
 }
 
 function showRfpStep(step){
@@ -7048,12 +7112,13 @@ function computeVettingStatus(show, rfp){
 }
 
 /* Bulk "Add to RFP": a manual, hand-picked add path alongside Vetting Pass 1, per the user — selected
-   Embedded shows go straight into VET.evaluated with bucket:"manual", bypassing evaluateShow()'s
+   Embedded shows go straight into the active card's evaluated array with bucket:"manual", bypassing evaluateShow()'s
    exclusivity/prior-decline/CPM checks entirely (not run through them, not "passed" them). bucket:"manual"
    still works with the existing defaultIncluded()/isIncluded()/toggleOverride() override system unmodified
    — defaultIncluded() already treats any non-"eliminated" bucket as included by default. */
 function manualEntry(show){
-  const rfp = VET.rfp || {advertiser: ""};
+  const card = VET();
+  const rfp = (card && card.rfp) || {advertiser: ""};
   const vettingStatus = computeVettingStatus(show, rfp);
   const reasons = [{kind:"good", sim:false, text:`Added directly from Inventory — bypassed Vetting Pass 1's exclusivity, prior-vetting-history, and CPM checks.`}];
   if (vettingStatus === "approved"){
@@ -7062,17 +7127,20 @@ function manualEntry(show){
   }
   return {show, bucket: "manual", reasons, vettingStatus};
 }
+/* Targets whichever card is currently "active" (activeRfpId) — the one last viewed/built, which persists
+   across switching to Inventory and back. With multiple cards open, this is a real judgment call (add to
+   the most-recently-active one rather than showing an explicit picker) — the bulk-bar's own title tooltip
+   names which card it'll land in, so it's never silently ambiguous. */
 function addSelectedToRfp(){
-  if (currentTab !== "ratecard" || !VET.rfp) return;
+  if (currentTab !== "ratecard" || !activeRfpId) return;
+  const card = VET();
   const sel = state().selected;
   if (!sel.size) return;
-  const already = new Set(VET.evaluated.map(e => e.show.name));
-  rows0().filter(s => sel.has(s.name) && !already.has(s.name)).forEach(s => VET.evaluated.push(manualEntry(s)));
+  const already = new Set(card.evaluated.map(e => e.show.name));
+  rows0().filter(s => sel.has(s.name) && !already.has(s.name)).forEach(s => card.evaluated.push(manualEntry(s)));
   sel.clear();
   renderRateCard();
-  ensureRfpTab();
-  switchScreen("rfpresults");
-  renderResults();
+  switchToRfp(card.id);
 }
 
 function runVetting(){
@@ -7086,10 +7154,7 @@ function runVetting(){
     cpmMax: document.getElementById("f-cpm-max").value ? Number(document.getElementById("f-cpm-max").value) : null,
   };
 
-  VET.overrides = {};
-  document.getElementById("cta-row").style.display = "";
-  document.getElementById("handoff-panel").style.display = "none";
-  document.getElementById("handoff-panel").innerHTML = "";
+  const formFields = captureRfpFormFields();
 
   showRfpStep("results");
   document.getElementById("results-body").style.display = "none";
@@ -7103,81 +7168,107 @@ function runVetting(){
       if (i === steps.length - 1){
         setTimeout(() => {
           document.getElementById(id).classList.replace("is-active","is-done");
-          finishVetting(rfp);
+          finishVetting(rfp, formFields);
         }, 500);
       }
     }, i * 550);
   });
 }
 
-function finishVetting(rfp){
+/* draftRfpId (set by editCurrentRfp(), null from openRfpModal()'s fresh-start path) decides whether this
+   run UPDATES an existing card in place or CREATES a new one — the actual mechanism multiple simultaneous
+   rate cards depends on. */
+function finishVetting(rfp, formFields){
   const genreMatched = rfp.genres.length ? SHOWS.filter(s => matchesGenre(s.genre, rfp.genres)) : [];
   const filteredOut = rfp.genres.length ? SHOWS.filter(s => !matchesGenre(s.genre, rfp.genres)) : SHOWS.slice();
 
-  VET.rfp = rfp;
-  VET.evaluated = genreMatched.map(s => evaluateShow(s, rfp));
-  VET.filteredOut = filteredOut;
+  const card = (draftRfpId && RFPS.find(r => r.id === draftRfpId)) || { id: "rfp" + (++rfpIdCounter) };
+  if (!RFPS.includes(card)) RFPS.push(card);
+  card.rfp = rfp;
+  card.formFields = formFields;
+  card.evaluated = genreMatched.map(s => evaluateShow(s, rfp));
+  card.filteredOut = filteredOut;
+  card.overrides = {};
+  card.sentToAdOps = false;
+  card.activeResultTab = "recommended";
+  activeRfpId = card.id;
+  draftRfpId = null;
 
-  document.getElementById("stat-total").textContent = SHOWS.length;
-  document.getElementById("stat-total-inline").textContent = SHOWS.length;
-  document.getElementById("stat-genre").textContent = genreMatched.length;
-
-  const flist = document.querySelector("#panel-filtered .filtered-list");
-  flist.innerHTML = filteredOut.length ? filteredOut.map(s => `
-    <div class="filtered-row"><span>${s.name}</span><span class="fg">${s.genre} — doesn't match selected target genres</span></div>
-  `).join("") : `<div class="empty-note">All shows matched the selected genres.</div>`;
-  document.getElementById("cnt-filtered").textContent = filteredOut.length;
-
-  document.getElementById("results-body").style.display = "";
-  showResultTab("recommended");
-  renderResults();
-
+  ensureRfpTab(card);
+  switchToRfp(card.id);
   closeRfpModal();
-  ensureRfpTab();
-  switchScreen("rfpresults");
 }
 
-/* ---------------- Page-level Inventory / [built rate card] toggle ---------------- */
-/* Per the user: once Pass 1 actually runs, its results move out of the "+ New RFP" modal and live as a
-   second, persistent page-level tab next to Inventory — so the rate card being built and the full,
-   unfiltered inventory are just two toggleable views of the same page, not a modal blocking the table
-   behind it. Only one built rate card is modeled at a time (matches this prototype's existing no-persistence,
-   single-flow scope) — re-running vetting relabels/re-renders this same tab rather than adding another. */
-function rfpTabLabel(){
-  const advertiser = (VET.rfp && VET.rfp.advertiser) || "New";
-  const agency = (VET.rfp && VET.rfp.agency) || "Agency";
+/* ---------------- Page-level Inventory / [built rate cards] toggle ---------------- */
+/* Per the user: Pass 1's results live outside the "+ New RFP" modal as persistent page-level tabs next to
+   Inventory, and multiple can exist at once — each "+ New RFP" that runs vetting on a fresh draft adds its
+   own tab (RFPS + draftRfpId above) rather than overwriting whichever one you had open. All of them share
+   this one #view-rfpresults DOM subtree — switching tabs repoints activeRfpId and repaints it from that
+   card's own data (renderResults()) rather than each card getting its own duplicated markup. */
+function rfpTabLabel(card){
+  const advertiser = (card.rfp && card.rfp.advertiser) || "New";
+  const agency = (card.rfp && card.rfp.agency) || "Agency";
   return `${advertiser} × ${agency} Rate Card`;
 }
-function ensureRfpTab(){
-  let tab = document.getElementById("page-tab-rfp");
+function ensureRfpTab(card){
+  let tab = document.getElementById("page-tab-rfp-" + card.id);
   if (!tab){
     tab = document.createElement("div");
     tab.className = "page-tab-chip";
-    tab.id = "page-tab-rfp";
-    tab.onclick = () => switchScreen("rfpresults");
+    tab.id = "page-tab-rfp-" + card.id;
+    tab.dataset.rfpId = card.id;
+    tab.onclick = () => switchToRfp(card.id);
     document.getElementById("page-tabs").appendChild(tab);
   }
-  tab.textContent = rfpTabLabel();
+  tab.textContent = rfpTabLabel(card);
 }
-function switchScreen(which){
-  document.getElementById("view-inventory").classList.toggle("is-active", which === "inventory");
-  document.getElementById("view-rfpresults").classList.toggle("is-active", which === "rfpresults");
-  const rfpTab = document.getElementById("page-tab-rfp");
-  if (rfpTab) rfpTab.classList.toggle("is-active", which === "rfpresults");
+function switchToInventory(){
+  document.getElementById("view-inventory").classList.add("is-active");
+  document.getElementById("view-rfpresults").classList.remove("is-active");
+  document.querySelectorAll(".page-tab-chip").forEach(el => el.classList.remove("is-active"));
 }
-/* Reopens the modal on the RFP Response step, fields intact (unlike openRfpModal(), this deliberately
-   skips resetRfp() — the user is editing the rate card they already built, not starting a new one). */
+function switchToRfp(id){
+  activeRfpId = id;
+  document.getElementById("view-inventory").classList.remove("is-active");
+  document.getElementById("view-rfpresults").classList.add("is-active");
+  document.querySelectorAll(".page-tab-chip").forEach(el => el.classList.toggle("is-active", el.dataset.rfpId === id));
+  renderResults();
+}
+/* Reopens the modal on the RFP Response step with the ACTIVE card's own form values restored (unlike
+   openRfpModal(), which resets the form to blank for a new draft) — draftRfpId tells the next
+   finishVetting() to update this card in place rather than create another one. */
 function editCurrentRfp(){
+  const card = VET();
+  draftRfpId = card.id;
   document.getElementById("rfp-modal").classList.add("is-open");
   document.getElementById("nav-item-sales").classList.add("is-active");
   document.body.style.overflow = "hidden";
+  resetRfp();
+  populateRfpFormFields(card.formFields);
+  document.getElementById("rfp-title").textContent = "Edit " + rfpTabLabel(card);
   showRfpStep("response");
 }
 
-/* Re-renders cards + proposal bar from VET.evaluated + VET.overrides — called on load and on every override toggle. */
+/* Full repaint of the shared #view-rfpresults DOM from the currently active card (VET()) — stat tiles,
+   filtered-out list, result-tab grids/counts, proposal bar, and the cta-row/handoff-panel split (restored
+   from card.sentToAdOps, so switching back to an already-sent card doesn't show its "Send to Ad Ops" button
+   again). Called on load of a card (switchToRfp()) and on every override toggle. */
 function renderResults(){
+  const card = VET();
+  if (!card) return;
+
+  document.getElementById("stat-total-inline").textContent = SHOWS.length;
+  document.getElementById("stat-total").textContent = SHOWS.length;
+  document.getElementById("stat-genre").textContent = SHOWS.length - card.filteredOut.length;
+
+  const flist = document.querySelector("#panel-filtered .filtered-list");
+  flist.innerHTML = card.filteredOut.length ? card.filteredOut.map(s => `
+    <div class="filtered-row"><span>${s.name}</span><span class="fg">${s.genre} — doesn't match selected target genres</span></div>
+  `).join("") : `<div class="empty-note">All shows matched the selected genres.</div>`;
+  document.getElementById("cnt-filtered").textContent = card.filteredOut.length;
+
   const buckets = {recommended: [], flagged: [], eliminated: [], manual: []};
-  VET.evaluated.forEach(e => buckets[e.bucket].push(e));
+  card.evaluated.forEach(e => buckets[e.bucket].push(e));
 
   document.getElementById("stat-rec").textContent = buckets.recommended.length;
   document.getElementById("stat-flag").textContent = buckets.flagged.length;
@@ -7198,20 +7289,32 @@ function renderResults(){
     grid.innerHTML = buckets[b].length ? buckets[b].map(e => showCard(e)).join("") :
       `<div class="empty-note">${emptyText[b]}</div>`;
   });
+  showResultTab(card.activeResultTab || "recommended");
 
-  const proposal = VET.evaluated.filter(isIncluded);
+  const proposal = card.evaluated.filter(isIncluded);
   const approved = proposal.filter(e => e.vettingStatus === "approved");
   const needsVetting = proposal.filter(e => e.vettingStatus !== "approved");
-  const removedCount = VET.evaluated.filter(e => defaultIncluded(e.bucket) && !isIncluded(e)).length;
+  const removedCount = card.evaluated.filter(e => defaultIncluded(e.bucket) && !isIncluded(e)).length;
 
   document.getElementById("prop-total").textContent = proposal.length;
-  document.getElementById("prop-agency").textContent = VET.rfp.agency || "the requesting agency";
+  document.getElementById("prop-agency").textContent = card.rfp.agency || "the requesting agency";
   document.getElementById("prop-approved").textContent = approved.length;
   document.getElementById("prop-unvetted").textContent = needsVetting.length;
   document.getElementById("prop-removed").textContent = removedCount;
   document.getElementById("prop-removed-pill").style.display = removedCount ? "" : "none";
   document.getElementById("send-count").textContent = needsVetting.length;
   document.getElementById("btn-send-adops").disabled = proposal.length === 0;
+
+  if (card.sentToAdOps){
+    document.getElementById("cta-row").style.display = "none";
+    document.getElementById("handoff-panel").style.display = "";
+    document.getElementById("handoff-panel").innerHTML = buildHandoffHtml(card);
+  } else {
+    document.getElementById("cta-row").style.display = "";
+    document.getElementById("handoff-panel").style.display = "none";
+    document.getElementById("handoff-panel").innerHTML = "";
+  }
+  document.getElementById("results-body").style.display = "";
 }
 
 function showCard(e){
@@ -7241,20 +7344,18 @@ function showCard(e){
   </div>`;
 }
 
-function sendToAdOps(){
-  const proposal = VET.evaluated.filter(isIncluded);
+/* Pulled out of sendToAdOps() so renderResults() can also call it to restore an already-sent card's handoff
+   panel when switching back to its tab — card.sentToAdOps is the persisted flag, this is just the render. */
+function buildHandoffHtml(card){
+  const proposal = card.evaluated.filter(isIncluded);
   const approved = proposal.filter(e => e.vettingStatus === "approved");
   const needsVetting = proposal.filter(e => e.vettingStatus !== "approved");
-  const agency = VET.rfp.agency || "the requesting agency";
-
-  document.getElementById("cta-row").style.display = "none";
-  const panel = document.getElementById("handoff-panel");
-  panel.style.display = "";
-  panel.innerHTML = `
+  const agency = card.rfp.agency || "the requesting agency";
+  return `
     <div class="handoff-card">
       <h4>✅ Sent to Ad Ops for vetting</h4>
       <p><b>${needsVetting.length}</b> show${needsVetting.length === 1 ? "" : "s"} below ${needsVetting.length === 1 ? "hasn't" : "haven't"} yet approved or declined a partnership with
-        <b>${VET.rfp.advertiser || "this advertiser"}</b> — Ad Ops will reach out to each one, log the approve/decline "whys" back onto this RFP, then the finalized list goes back to <b>${agency}</b>, the agency that submitted the original request.
+        <b>${card.rfp.advertiser || "this advertiser"}</b> — Ad Ops will reach out to each one, log the approve/decline "whys" back onto this RFP, then the finalized list goes back to <b>${agency}</b>, the agency that submitted the original request.
         ${approved.length ? `<b>${approved.length}</b> show${approved.length === 1 ? "" : "s"} ${approved.length === 1 ? "is" : "are"} already cleared and ${approved.length === 1 ? "needs" : "need"} no further vetting.` : ""}
       </p>
       ${needsVetting.length ? `<div class="handoff-list">
@@ -7263,15 +7364,22 @@ function sendToAdOps(){
       ${approved.length ? `<div class="handoff-list">
         ${approved.map(e => `<div class="handoff-row"><span>${e.show.name}</span><span class="status-pill ready">Already cleared</span></div>`).join("")}
       </div>` : ""}
-      <div style="margin-top:1rem;"><button class="btn" onclick="switchScreen('inventory')">Back to Inventory</button></div>
+      <div style="margin-top:1rem;"><button class="btn" onclick="switchToInventory()">Back to Inventory</button></div>
     </div>`;
-  panel.scrollIntoView({block: "nearest"});
+}
+function sendToAdOps(){
+  const card = VET();
+  card.sentToAdOps = true;
+  renderResults();
+  document.getElementById("handoff-panel").scrollIntoView({block: "nearest"});
 }
 
 function showResultTab(tab){
   document.querySelectorAll(".result-tab").forEach(t => t.classList.toggle("is-active", t.dataset.tab === tab));
   document.querySelectorAll(".result-panel").forEach(p => p.classList.remove("is-active"));
   document.getElementById("panel-" + tab).classList.add("is-active");
+  const card = VET();
+  if (card) card.activeResultTab = tab;
 }
 
 /* ---------------- init ---------------- */
