@@ -521,7 +521,37 @@
      token in this component (Size=Default/md/lg are 52/72/96px), not incidental to text+padding. */
   tbody td { height: 52px; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: 0; }
-  tbody tr:hover { background: var(--bg-subtle); }
+  tbody tr:hover, tbody tr.is-selected { background: var(--bg-subtle); }
+
+  /* ----- Row selection: a real, permanent leading column (not part of visibleCols()/the View panel's
+     order+hide system — always first, unaffected by column reorder/hide) rather than decoration inside the
+     Name column. Per-row checkbox is hidden until row hover/focus or the row is actually selected — with 58
+     rows visible at once, an always-on checkbox per row was real noise, same reasoning as the column-header
+     "..." menu's own hover-reveal. Reuses the exact checked/glyph treatment .col-check-item's checkbox
+     already uses elsewhere, plus an indeterminate dash for the header's tri-state "select all". */
+  .col-check-th, .col-check-td { width: 36px; padding: 0 0 0 12px; }
+  .rc-checkbox {
+    appearance: none; -webkit-appearance: none; margin: 0; flex: none; position: relative;
+    width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 4px;
+    background: transparent; cursor: pointer; vertical-align: middle; opacity: 1;
+  }
+  .rc-checkbox:checked, .rc-checkbox:indeterminate { background: var(--primary); border-color: var(--primary); }
+  .rc-checkbox:checked::after {
+    content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px;
+    border: solid var(--primary-fg); border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  .rc-checkbox:indeterminate::after {
+    content: ""; position: absolute; left: 3px; top: 6.5px; width: 8px; height: 2px; background: var(--primary-fg);
+  }
+  .row-check { opacity: 0; }
+  tbody tr:hover .row-check, tbody tr.is-selected .row-check, .row-check:focus-visible { opacity: 1; }
+
+  .bulk-bar {
+    display: none; align-items: center; gap: 0.7rem; border: 1px solid var(--border); background: var(--bg-subtle);
+    border-radius: var(--radius); padding: 0.5rem 0.8rem; font-size: 0.83rem; margin-bottom: 0.6rem;
+  }
+  .bulk-bar b { font-variant-numeric: tabular-nums; }
+  .bulk-bar .btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
   tr.group-row td { background: var(--bg-subtle); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); padding: 0.5rem 0.8rem; }
   tr.group-row:hover td { background: var(--bg-subtle); }
   /* Bug fix: this was the one cell style still set to white-space:normal, so any show name too long for the
@@ -803,6 +833,8 @@
 
       <div class="chiprow" id="rc-chiprow" style="display:none;"></div>
 
+      <div class="bulk-bar" id="rc-bulk-bar"></div>
+
       <div class="table-card">
         <div class="table-wrap">
           <table>
@@ -838,12 +870,14 @@
             <div class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt" id="cnt-flagged">0</span></div>
             <div class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt" id="cnt-eliminated">0</span></div>
             <div class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></div>
+            <div class="result-tab" data-tab="manual" onclick="showResultTab('manual')">Added Manually <span class="cnt" id="cnt-manual">0</span></div>
           </div>
 
           <div class="result-panel is-active" id="panel-recommended"><div class="result-grid"></div></div>
           <div class="result-panel" id="panel-flagged"><div class="result-grid"></div></div>
           <div class="result-panel" id="panel-eliminated"><div class="result-grid"></div></div>
           <div class="result-panel" id="panel-filtered"><div class="filtered-list"></div></div>
+          <div class="result-panel" id="panel-manual"><div class="result-grid"></div></div>
 
           <div class="proposal-bar" id="proposal-bar">
             <div class="proposal-summary">
@@ -5925,7 +5959,7 @@ let currentTab = "ratecard";
    Only the LAST entry may have field:null (a not-yet-configured "add another" placeholder); every
    other entry always has a real field (onLevelFieldChange enforces this by compacting on change). */
 function freshTabState(){
-  return { filters: {}, filterRows: [null], sort: [{field: null, dir: "desc"}], group: [{field: null, dir: "desc"}], search: "" };
+  return { filters: {}, filterRows: [null], sort: [{field: null, dir: "desc"}], group: [{field: null, dir: "desc"}], search: "", selected: new Set() };
 }
 const tabState = {
   ratecard: freshTabState(),
@@ -5982,8 +6016,11 @@ function colWidth(col){
 function buildRcHeader(){
   const visible = visibleCols();
   const locked = lockedColKey();
-  document.getElementById("rc-colgroup").innerHTML = visible.map(col => `<col id="rccol-${col.key}" style="width:${colWidth(col)}px">`).join("");
-  document.getElementById("rc-thead-row").innerHTML = visible.map(col => `
+  document.getElementById("rc-colgroup").innerHTML = `<col class="col-check-td" style="width:36px">`
+    + visible.map(col => `<col id="rccol-${col.key}" style="width:${colWidth(col)}px">`).join("");
+  document.getElementById("rc-thead-row").innerHTML = `
+    <th class="col-check-th"><input type="checkbox" class="rc-checkbox" id="rc-select-all" onclick="onSelectAllClick(event)" aria-label="Select all rows"></th>
+    ` + visible.map(col => `
     <th class="col-th" id="th-${col.key}" draggable="${col.key !== locked}"
         ondragstart="onColDragStart(event, '${col.key}')" ondragover="onColDragOver(event, '${col.key}')" ondragend="onColDragEnd()">
       <div class="col-th-inner">
@@ -6641,15 +6678,20 @@ function renderCell(col, s){
 }
 
 function rcRowHtml(s){
-  return `<tr>${visibleCols().map(col => `<td${col.money || col.thousands || (typeof s[col.key] === "number" && !col.pct) ? ' class="tabular"' : ""}>${renderCell(col, s)}</td>`).join("")}</tr>`;
+  const selected = state().selected.has(s.name);
+  return `<tr class="${selected ? "is-selected" : ""}">
+    <td class="col-check-td"><input type="checkbox" class="rc-checkbox row-check" ${selected ? "checked" : ""} onclick='onRowCheckClick(event, ${JSON.stringify(s.name)})' aria-label="Select ${esc(s.name)}"></td>
+    ${visibleCols().map(col => `<td${col.money || col.thousands || (typeof s[col.key] === "number" && !col.pct) ? ' class="tabular"' : ""}>${renderCell(col, s)}</td>`).join("")}
+  </tr>`;
 }
 
-function renderRateCard(){
+/* Search + column-filter matching only — shared by renderRateCard() and onSelectAllClick() (select-all
+   needs to know exactly which rows are on screen right now, independent of sort/group). */
+function filteredRows(){
   const columns = cols();
   const st = state();
   const q = (document.getElementById("rc-search").value || "").toLowerCase();
-
-  let rows = rows0().filter(s => {
+  return rows0().filter(s => {
     if (q && !(s.name.toLowerCase().includes(q) || s.genre.toLowerCase().includes(q))) return false;
     for (const col of columns){
       const fv = st.filters[col.key];
@@ -6658,6 +6700,13 @@ function renderRateCard(){
     }
     return true;
   });
+}
+
+function renderRateCard(){
+  const columns = cols();
+  const st = state();
+  const q = (document.getElementById("rc-search").value || "").toLowerCase();
+  let rows = filteredRows();
 
   const activeSort = st.sort.filter(r => r.field);
   if (activeSort.length){
@@ -6676,7 +6725,7 @@ function renderRateCard(){
   }
 
   const activeGroup = st.group.filter(r => r.field);
-  const colspan = visibleCols().length;
+  const colspan = visibleCols().length + 1;
   let bodyHtml;
   if (!activeGroup.length || !rows.length){
     bodyHtml = rows.map(rcRowHtml).join("");
@@ -6686,6 +6735,15 @@ function renderRateCard(){
   }
   document.getElementById("rc-tbody").innerHTML = rows.length ? bodyHtml : `<tr><td colspan="${colspan}" class="empty-note">No shows match your filters.</td></tr>`;
   document.getElementById("rc-note").textContent = `Showing ${rows.length} of ${rows0().length} ${TABS[currentTab].noun} on the current ${TABS[currentTab].tabLabel} snapshot (${TABS[currentTab].sourceLabel}).`;
+
+  /* Select-all reflects only the currently filtered/visible rows (matches Airtable/Gmail-style bulk-select
+     convention) — selection itself is tracked by show name in state().selected and persists across filter
+     changes even though a filtered-out row's checkbox isn't currently on screen to show it. */
+  const selectAllEl = document.getElementById("rc-select-all");
+  const selCount = rows.filter(s => st.selected.has(s.name)).length;
+  selectAllEl.checked = rows.length > 0 && selCount === rows.length;
+  selectAllEl.indeterminate = selCount > 0 && selCount < rows.length;
+  renderBulkBar();
 
   /* Header state — targeted class/text updates only, so any open column menu keeps input focus.
      Only visible columns have a <th> in the DOM (hidden ones can still carry a filter/sort/group value). */
@@ -6732,6 +6790,43 @@ function renderRateCard(){
   }
   syncToolbarControls();
   sizeTableWrap();
+}
+
+function onRowCheckClick(event, name){
+  const sel = state().selected;
+  if (event.target.checked) sel.add(name); else sel.delete(name);
+  renderRateCard();
+}
+function onSelectAllClick(event){
+  const sel = state().selected;
+  const visibleNames = filteredRows().map(s => s.name);
+  const allSelected = visibleNames.length > 0 && visibleNames.every(n => sel.has(n));
+  if (allSelected) visibleNames.forEach(n => sel.delete(n));
+  else visibleNames.forEach(n => sel.add(n));
+  renderRateCard();
+}
+function clearSelection(){
+  state().selected.clear();
+  renderRateCard();
+}
+/* Bulk "Add to RFP" only makes sense on the Embedded tab today — evaluateShow()/showCard() and the whole
+   proposal model are Embedded-only (see notes.md's open threads: DAI/Newsletters were never wired into
+   vetting), and their field shapes genuinely differ (no s.location/s.dropDay on DAI or Newsletter shows,
+   for instance) so showCard() would render undefined fields for them. Selection itself still works on every
+   tab per the user's ask ("select any row in the rate card view") — only the bulk action is gated. */
+function renderBulkBar(){
+  const bar = document.getElementById("rc-bulk-bar");
+  const count = state().selected.size;
+  if (!count){ bar.style.display = "none"; bar.innerHTML = ""; return; }
+  bar.style.display = "flex";
+  const onEmbedded = currentTab === "ratecard";
+  const disabled = !onEmbedded || !VET.rfp;
+  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!VET.rfp ? "Start an RFP first (+ New RFP), then add shows here" : "");
+  bar.innerHTML = `
+    <span><b>${count}</b> selected</span>
+    <button type="button" class="btn" onclick="clearSelection()">Clear selection</button>
+    <button type="button" class="btn primary"${disabled ? " disabled" : ""} title="${esc(title)}" onclick="addSelectedToRfp()">Add to RFP</button>
+  `;
 }
 
 /* Sets .table-wrap's height to whatever vertical space is actually left in the viewport — measured directly
@@ -6925,19 +7020,52 @@ function evaluateShow(show, rfp){
     reasons.push({kind:"good", sim:false, text:`Within target genre and CPM range, no exclusivity or vetting-history conflicts found in this snapshot.`});
   }
 
-  let vettingStatus = "unvetted";
-  if (rfp.advertiser){
-    const declinedHit = (DECLINE_DB[rfp.advertiser.toLowerCase()] || []).some(h => h.show === show.name);
-    const approvedHit = (APPROVAL_DB[rfp.advertiser.toLowerCase()] || []).some(h => h.show === show.name);
-    if (declinedHit) vettingStatus = "declined";
-    else if (approvedHit) vettingStatus = "approved";
-  }
+  const vettingStatus = computeVettingStatus(show, rfp);
   if (vettingStatus === "approved" && bucket !== "eliminated"){
     const note = APPROVAL_DB[rfp.advertiser.toLowerCase()].find(h => h.show === show.name).note;
     reasons.push({kind:"good", sim:true, text:`Already approved for this brand — ${note}`});
   }
 
   return {show, bucket, reasons, vettingStatus};
+}
+
+/* Shared by evaluateShow() and manualEntry() — a show's approved/declined-for-this-brand status is a real
+   lookup against DECLINE_DB/APPROVAL_DB independent of which path (full vetting vs. hand-picked add) put it
+   in the proposal. */
+function computeVettingStatus(show, rfp){
+  if (!rfp.advertiser) return "unvetted";
+  const key = rfp.advertiser.toLowerCase();
+  if ((DECLINE_DB[key] || []).some(h => h.show === show.name)) return "declined";
+  if ((APPROVAL_DB[key] || []).some(h => h.show === show.name)) return "approved";
+  return "unvetted";
+}
+
+/* Bulk "Add to RFP": a manual, hand-picked add path alongside Vetting Pass 1, per the user — selected
+   Embedded shows go straight into VET.evaluated with bucket:"manual", bypassing evaluateShow()'s
+   exclusivity/prior-decline/CPM checks entirely (not run through them, not "passed" them). bucket:"manual"
+   still works with the existing defaultIncluded()/isIncluded()/toggleOverride() override system unmodified
+   — defaultIncluded() already treats any non-"eliminated" bucket as included by default. */
+function manualEntry(show){
+  const rfp = VET.rfp || {advertiser: ""};
+  const vettingStatus = computeVettingStatus(show, rfp);
+  const reasons = [{kind:"good", sim:false, text:`Added directly from Inventory — bypassed Vetting Pass 1's exclusivity, prior-vetting-history, and CPM checks.`}];
+  if (vettingStatus === "approved"){
+    const note = APPROVAL_DB[rfp.advertiser.toLowerCase()].find(h => h.show === show.name).note;
+    reasons.push({kind:"good", sim:true, text:`Already approved for this brand — ${note}`});
+  }
+  return {show, bucket: "manual", reasons, vettingStatus};
+}
+function addSelectedToRfp(){
+  if (currentTab !== "ratecard" || !VET.rfp) return;
+  const sel = state().selected;
+  if (!sel.size) return;
+  const already = new Set(VET.evaluated.map(e => e.show.name));
+  rows0().filter(s => sel.has(s.name) && !already.has(s.name)).forEach(s => VET.evaluated.push(manualEntry(s)));
+  sel.clear();
+  renderRateCard();
+  ensureRfpTab();
+  switchScreen("rfpresults");
+  renderResults();
 }
 
 function runVetting(){
@@ -7041,7 +7169,7 @@ function editCurrentRfp(){
 
 /* Re-renders cards + proposal bar from VET.evaluated + VET.overrides — called on load and on every override toggle. */
 function renderResults(){
-  const buckets = {recommended: [], flagged: [], eliminated: []};
+  const buckets = {recommended: [], flagged: [], eliminated: [], manual: []};
   VET.evaluated.forEach(e => buckets[e.bucket].push(e));
 
   document.getElementById("stat-rec").textContent = buckets.recommended.length;
@@ -7050,11 +7178,18 @@ function renderResults(){
   document.getElementById("cnt-recommended").textContent = buckets.recommended.length;
   document.getElementById("cnt-flagged").textContent = buckets.flagged.length;
   document.getElementById("cnt-eliminated").textContent = buckets.eliminated.length;
+  document.getElementById("cnt-manual").textContent = buckets.manual.length;
 
-  ["recommended","flagged","eliminated"].forEach(b => {
+  const emptyText = {
+    recommended: "No shows landed in this bucket for the criteria entered.",
+    flagged: "No shows landed in this bucket for the criteria entered.",
+    eliminated: "No shows landed in this bucket for the criteria entered.",
+    manual: "No shows added directly from Inventory yet — select rows on the Embedded tab and use “Add to RFP.”",
+  };
+  ["recommended","flagged","eliminated","manual"].forEach(b => {
     const grid = document.querySelector(`#panel-${b} .result-grid`);
     grid.innerHTML = buckets[b].length ? buckets[b].map(e => showCard(e)).join("") :
-      `<div class="empty-note">No shows landed in this bucket for the criteria entered.</div>`;
+      `<div class="empty-note">${emptyText[b]}</div>`;
   });
 
   const proposal = VET.evaluated.filter(isIncluded);
