@@ -177,6 +177,14 @@
 
   .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
   .page-head h1 { font-size: 1.3rem; margin: 0; letter-spacing: -0.01em; }
+  /* Replaces the plain "Inventory" <h1> once a vetting pass has run — lets the built rate card live as a
+     second, persistent page-level tab rather than only existing inside the "+ New RFP" modal. Same type
+     scale as the h1 it replaces; weight/color (not an underline, page-head has no shared border to anchor
+     one) is what distinguishes the active tab, matching this file's muted/active convention elsewhere. */
+  .page-tabs { display: flex; align-items: baseline; gap: 1.3rem; }
+  .page-tab { font-size: 1.3rem; font-weight: 500; letter-spacing: -0.01em; color: var(--fg-muted); cursor: pointer; }
+  .page-tab:hover { color: var(--fg); }
+  .page-tab.is-active { color: var(--fg); font-weight: 700; cursor: default; }
   .crumb { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.3rem; }
   .crumb a { color: var(--primary); text-decoration: none; cursor: pointer; }
   .crumb a:hover { text-decoration: underline; }
@@ -680,7 +688,7 @@
     <div class="nav-group" id="nav-inventory">
       <div class="nav-item is-clickable" id="nav-item-inventory"><span class="ic">&#9707;</span> Inventory</div>
       <div class="nav-sub">
-        <div class="nav-item is-clickable is-active" id="nav-item-ratecard" onclick="closeRfpModal()">Rate Card</div>
+        <div class="nav-item is-clickable is-active" id="nav-item-ratecard" onclick="closeRfpModal(); switchScreen('inventory');">Rate Card</div>
         <div class="nav-item">Fill Status</div>
         <div class="nav-item">Embedded</div>
         <div class="nav-item">DAI</div>
@@ -710,11 +718,15 @@
   <main class="main">
 
     <!-- ---------- SCREEN 1: RATE CARD ---------- -->
-    <section id="screen-ratecard" class="screen is-active">
+    <section id="screen-ratecard">
       <div class="page-head">
-        <h1>Inventory</h1>
+        <div class="page-tabs" id="page-tabs">
+          <div class="page-tab is-active" id="page-tab-inventory" onclick="switchScreen('inventory')">Inventory</div>
+        </div>
         <button class="btn primary" onclick="openRfpModal()">+ New RFP</button>
       </div>
+
+      <div id="view-inventory" class="screen is-active">
 
       <div class="tabbar">
         <div class="tab is-active is-clickable" data-tab="ratecard" onclick="switchTab('ratecard')">Embedded</div>
@@ -791,7 +803,54 @@
         </div>
         <div class="table-note" id="rc-note"></div>
       </div>
-    </section>
+
+      </div>
+
+      <div id="view-rfpresults" class="screen">
+        <div id="results-body" style="display:none;">
+          <div class="banner">
+            <span class="ic">ℹ️</span>
+            <div>Pass 1 runs against the current Rate Card snapshot (<b id="stat-total-inline"></b> shows). A few competitive-exclusivity and prior-vetting flags below are <b>simulated for this proof of concept</b> — marked inline — since the real roster has no active conflicts for this advertiser yet. Review and adjust the proposal below, then send it to Ad Ops — they'll confirm any show that hasn't yet approved or declined this brand and log the "whys" back onto the RFP before it goes back to the agency.</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-tile"><div class="num tabular" id="stat-total">0</div><div class="lbl">Rate Card total</div></div>
+            <div class="stat-tile"><div class="num tabular" id="stat-genre">0</div><div class="lbl">Genre/format match</div></div>
+            <div class="stat-tile rec"><div class="num tabular" id="stat-rec">0</div><div class="lbl">Recommended</div></div>
+            <div class="stat-tile flag"><div class="num tabular" id="stat-flag">0</div><div class="lbl">Flagged</div></div>
+            <div class="stat-tile elim"><div class="num tabular" id="stat-elim">0</div><div class="lbl">Eliminated</div></div>
+          </div>
+
+          <div class="result-tabs">
+            <div class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt" id="cnt-recommended">0</span></div>
+            <div class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt" id="cnt-flagged">0</span></div>
+            <div class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt" id="cnt-eliminated">0</span></div>
+            <div class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></div>
+          </div>
+
+          <div class="result-panel is-active" id="panel-recommended"><div class="result-grid"></div></div>
+          <div class="result-panel" id="panel-flagged"><div class="result-grid"></div></div>
+          <div class="result-panel" id="panel-eliminated"><div class="result-grid"></div></div>
+          <div class="result-panel" id="panel-filtered"><div class="filtered-list"></div></div>
+
+          <div class="proposal-bar" id="proposal-bar">
+            <div class="proposal-summary">
+              <b id="prop-total">0</b> shows in this proposal to <b id="prop-agency">the agency</b> —
+              <span class="pill approved"><b id="prop-approved">0</b> already approved</span>
+              <span class="pill unvetted"><b id="prop-unvetted">0</b> not yet vetted with the show</span>
+              <span class="pill removed" id="prop-removed-pill"><b id="prop-removed">0</b> removed by you</span>
+            </div>
+            <div class="proposal-hint">Use “Remove” on a card to leave it out, or “Include anyway” on an eliminated show to override the system and send it for vetting too.</div>
+          </div>
+
+          <div id="cta-row" style="margin-top:1rem; display:flex; gap:0.6rem; flex-wrap:wrap;">
+            <button class="btn" onclick="editCurrentRfp()">← Back to RFP Response</button>
+            <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Send <span id="send-count">0</span> unvetted shows to Ad Ops →</button>
+          </div>
+
+          <div id="handoff-panel" style="display:none; margin-top:1.2rem;"></div>
+        </div>
+      </div>
 
     </section>
   </main>
@@ -901,56 +960,15 @@
         </div>
       </div>
 
-      <!-- STEP C: results -->
+      <!-- STEP C: vetting-in-progress. Once done, finishVetting() closes this modal and the equivalent
+           results content (moved to #view-rfpresults, id="results-body", below) shows on the page instead —
+           per the user, so the built rate card can live alongside Inventory as a persistent, toggleable tab
+           rather than being trapped behind this modal once a pass has actually run. -->
       <div class="rfp-step" id="step-results" style="display:none;">
         <div class="vet-progress" id="vet-progress">
           <div class="vet-step" id="vp-1"><span class="mark">1</span> Checking competitive exclusivity…</div>
           <div class="vet-step" id="vp-2"><span class="mark">2</span> Checking previous vetting responses…</div>
           <div class="vet-step" id="vp-3"><span class="mark">3</span> Filtering to target genres &amp; demo…</div>
-        </div>
-
-        <div id="results-body" style="display:none;">
-          <div class="banner">
-            <span class="ic">ℹ️</span>
-            <div>Pass 1 runs against the current Rate Card snapshot (<b id="stat-total-inline"></b> shows). A few competitive-exclusivity and prior-vetting flags below are <b>simulated for this proof of concept</b> — marked inline — since the real roster has no active conflicts for this advertiser yet. Review and adjust the proposal below, then send it to Ad Ops — they'll confirm any show that hasn't yet approved or declined this brand and log the "whys" back onto the RFP before it goes back to the agency.</div>
-          </div>
-
-          <div class="stat-row">
-            <div class="stat-tile"><div class="num tabular" id="stat-total">0</div><div class="lbl">Rate Card total</div></div>
-            <div class="stat-tile"><div class="num tabular" id="stat-genre">0</div><div class="lbl">Genre/format match</div></div>
-            <div class="stat-tile rec"><div class="num tabular" id="stat-rec">0</div><div class="lbl">Recommended</div></div>
-            <div class="stat-tile flag"><div class="num tabular" id="stat-flag">0</div><div class="lbl">Flagged</div></div>
-            <div class="stat-tile elim"><div class="num tabular" id="stat-elim">0</div><div class="lbl">Eliminated</div></div>
-          </div>
-
-          <div class="result-tabs">
-            <div class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt" id="cnt-recommended">0</span></div>
-            <div class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt" id="cnt-flagged">0</span></div>
-            <div class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt" id="cnt-eliminated">0</span></div>
-            <div class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></div>
-          </div>
-
-          <div class="result-panel is-active" id="panel-recommended"><div class="result-grid"></div></div>
-          <div class="result-panel" id="panel-flagged"><div class="result-grid"></div></div>
-          <div class="result-panel" id="panel-eliminated"><div class="result-grid"></div></div>
-          <div class="result-panel" id="panel-filtered"><div class="filtered-list"></div></div>
-
-          <div class="proposal-bar" id="proposal-bar">
-            <div class="proposal-summary">
-              <b id="prop-total">0</b> shows in this proposal to <b id="prop-agency">the agency</b> —
-              <span class="pill approved"><b id="prop-approved">0</b> already approved</span>
-              <span class="pill unvetted"><b id="prop-unvetted">0</b> not yet vetted with the show</span>
-              <span class="pill removed" id="prop-removed-pill"><b id="prop-removed">0</b> removed by you</span>
-            </div>
-            <div class="proposal-hint">Use “Remove” on a card to leave it out, or “Include anyway” on an eliminated show to override the system and send it for vetting too.</div>
-          </div>
-
-          <div id="cta-row" style="margin-top:1rem; display:flex; gap:0.6rem; flex-wrap:wrap;">
-            <button class="btn" onclick="showRfpStep('response')">← Back to RFP Response</button>
-            <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Send <span id="send-count">0</span> unvetted shows to Ad Ops →</button>
-          </div>
-
-          <div id="handoff-panel" style="display:none; margin-top:1.2rem;"></div>
         </div>
       </div>
 
@@ -6966,6 +6984,48 @@ function finishVetting(rfp){
   document.getElementById("results-body").style.display = "";
   showResultTab("recommended");
   renderResults();
+
+  closeRfpModal();
+  ensureRfpTab();
+  switchScreen("rfpresults");
+}
+
+/* ---------------- Page-level Inventory / [built rate card] toggle ---------------- */
+/* Per the user: once Pass 1 actually runs, its results move out of the "+ New RFP" modal and live as a
+   second, persistent page-level tab next to Inventory — so the rate card being built and the full,
+   unfiltered inventory are just two toggleable views of the same page, not a modal blocking the table
+   behind it. Only one built rate card is modeled at a time (matches this prototype's existing no-persistence,
+   single-flow scope) — re-running vetting relabels/re-renders this same tab rather than adding another. */
+function rfpTabLabel(){
+  const advertiser = (VET.rfp && VET.rfp.advertiser) || "New";
+  const agency = (VET.rfp && VET.rfp.agency) || "Agency";
+  return `${advertiser} × ${agency} Rate Card`;
+}
+function ensureRfpTab(){
+  let tab = document.getElementById("page-tab-rfp");
+  if (!tab){
+    tab = document.createElement("div");
+    tab.className = "page-tab";
+    tab.id = "page-tab-rfp";
+    tab.onclick = () => switchScreen("rfpresults");
+    document.getElementById("page-tabs").appendChild(tab);
+  }
+  tab.textContent = rfpTabLabel();
+}
+function switchScreen(which){
+  document.getElementById("view-inventory").classList.toggle("is-active", which === "inventory");
+  document.getElementById("view-rfpresults").classList.toggle("is-active", which === "rfpresults");
+  document.getElementById("page-tab-inventory").classList.toggle("is-active", which === "inventory");
+  const rfpTab = document.getElementById("page-tab-rfp");
+  if (rfpTab) rfpTab.classList.toggle("is-active", which === "rfpresults");
+}
+/* Reopens the modal on the RFP Response step, fields intact (unlike openRfpModal(), this deliberately
+   skips resetRfp() — the user is editing the rate card they already built, not starting a new one). */
+function editCurrentRfp(){
+  document.getElementById("rfp-modal").classList.add("is-open");
+  document.getElementById("nav-item-sales").classList.add("is-active");
+  document.body.style.overflow = "hidden";
+  showRfpStep("response");
 }
 
 /* Re-renders cards + proposal bar from VET.evaluated + VET.overrides — called on load and on every override toggle. */
@@ -7050,7 +7110,7 @@ function sendToAdOps(){
       ${approved.length ? `<div class="handoff-list">
         ${approved.map(e => `<div class="handoff-row"><span>${e.show.name}</span><span class="status-pill ready">Already cleared</span></div>`).join("")}
       </div>` : ""}
-      <div style="margin-top:1rem;"><button class="btn" onclick="closeRfpModal()">Close</button></div>
+      <div style="margin-top:1rem;"><button class="btn" onclick="switchScreen('inventory')">Back to Inventory</button></div>
     </div>`;
   panel.scrollIntoView({block: "nearest"});
 }
