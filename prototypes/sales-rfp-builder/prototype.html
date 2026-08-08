@@ -280,7 +280,7 @@
   .sort-arrow { margin-left: 0.3rem; font-size: 0.85em; opacity: 0; }
   .sort-arrow.is-active { opacity: 1; color: var(--primary); }
   .col-menu-btn {
-    border: none; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.75rem;
+    border: none; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 1rem; line-height: 1;
     padding: 0.15rem 0.3rem; border-radius: 4px; margin-left: auto;
   }
   .col-menu-btn:hover { background: var(--muted-bg); color: var(--fg); }
@@ -5953,7 +5953,7 @@ function buildRcHeader(){
         ondragstart="onColDragStart(event, '${col.key}')" ondragover="onColDragOver(event, '${col.key}')" ondragend="onColDragEnd()">
       <div class="col-th-inner">
         <span class="col-th-label" onclick="quickSort('${col.key}')">${col.label}<span class="sort-arrow" id="arrow-${col.key}"></span></span>
-        <button type="button" class="col-menu-btn" onclick="toggleColMenu('${col.key}', event)">▾</button>
+        <button type="button" class="col-menu-btn" onclick="toggleColMenu('${col.key}', event)" aria-label="Column options">⋯</button>
       </div>
       <div class="col-menu" id="colmenu-${col.key}"></div>
     </th>`).join("");
