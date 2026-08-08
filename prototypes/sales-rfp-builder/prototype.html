@@ -545,13 +545,14 @@
   }
   .row-check { opacity: 0; }
   tbody tr:hover .row-check, tbody tr.is-selected .row-check, .row-check:focus-visible { opacity: 1; }
-  /* border-color: var(--fg) here, not the default var(--border) — --border is a deliberately subtle hairline
+  /* border-color: var(--bg) here, not the default var(--border) — --border is a deliberately subtle hairline
      token that in dark mode is the exact same value as --bg-subtle (the row's own hover background), so an
      unchecked checkbox's border was genuinely invisible the instant it faded in on hover, not just low-
-     contrast. var(--fg) (not a literal black) stays visible in both themes — near-black on light's pale hover
-     tint, near-white on dark's near-identical-toned one. :not(:checked) so this doesn't fight the checked
-     state's own var(--primary) border (.rc-checkbox:checked below) while a selected row is hovered. */
-  tbody tr:hover .row-check:not(:checked), .row-check:focus-visible:not(:checked) { border-color: var(--fg); }
+     contrast. var(--fg) fixed that but read as too strong/dramatic against the tinted hover row — var(--bg),
+     the page's own base tone (a full step darker/lighter than --bg-subtle in both themes), gives a quieter,
+     still-visible outline instead. :not(:checked) so this doesn't fight the checked state's own var(--primary)
+     border (.rc-checkbox:checked below) while a selected row is hovered. */
+  tbody tr:hover .row-check:not(:checked), .row-check:focus-visible:not(:checked) { border-color: var(--bg); }
 
   .bulk-bar {
     display: none; align-items: center; gap: 0.7rem; border: 1px solid var(--border); background: var(--bg-subtle);
