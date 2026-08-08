@@ -529,30 +529,29 @@
      rows visible at once, an always-on checkbox per row was real noise, same reasoning as the column-header
      "..." menu's own hover-reveal. Reuses the exact checked/glyph treatment .col-check-item's checkbox
      already uses elsewhere, plus an indeterminate dash for the header's tri-state "select all". */
-  .col-check-th, .col-check-td { width: 36px; padding: 0 0 0 12px; }
+  .col-check-th, .col-check-td { width: 44px; padding: 0 0 0 12px; }
+  /* Bigger/rounder + a real var(--fg-muted) border, matching a reference screenshot the user shared directly
+     (Figma wasn't reachable to confirm this against the real Checkbox component — the connected desktop tab
+     was on an unrelated file, and the REST token is expired — so this is screenshot-matched, not
+     Figma-confirmed; worth a real check once Figma access is back). --fg-muted (an existing, real token
+     already used everywhere else in this file for secondary content) reads as a clear, deliberate mid-gray
+     outline without the starker var(--fg)/var(--bg) attempts tried first — and unlike --border, it doesn't
+     happen to equal the row's own hover background in dark mode, so it's never accidentally invisible. */
   .rc-checkbox {
-    appearance: none; -webkit-appearance: none; margin: 0; flex: none; position: relative;
-    width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 4px;
+    appearance: none; -webkit-appearance: none; margin: 0; flex: none; position: relative; box-sizing: border-box;
+    width: 20px; height: 20px; border: 1px solid var(--fg-muted); border-radius: var(--radius-md);
     background: transparent; cursor: pointer; vertical-align: middle; opacity: 1;
   }
   .rc-checkbox:checked, .rc-checkbox:indeterminate { background: var(--primary); border-color: var(--primary); }
   .rc-checkbox:checked::after {
-    content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px;
+    content: ""; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px;
     border: solid var(--primary-fg); border-width: 0 2px 2px 0; transform: rotate(45deg);
   }
   .rc-checkbox:indeterminate::after {
-    content: ""; position: absolute; left: 3px; top: 6.5px; width: 8px; height: 2px; background: var(--primary-fg);
+    content: ""; position: absolute; left: 5px; top: 9px; width: 10px; height: 2px; background: var(--primary-fg);
   }
   .row-check { opacity: 0; }
   tbody tr:hover .row-check, tbody tr.is-selected .row-check, .row-check:focus-visible { opacity: 1; }
-  /* border-color: var(--bg) here, not the default var(--border) — --border is a deliberately subtle hairline
-     token that in dark mode is the exact same value as --bg-subtle (the row's own hover background), so an
-     unchecked checkbox's border was genuinely invisible the instant it faded in on hover, not just low-
-     contrast. var(--fg) fixed that but read as too strong/dramatic against the tinted hover row — var(--bg),
-     the page's own base tone (a full step darker/lighter than --bg-subtle in both themes), gives a quieter,
-     still-visible outline instead. :not(:checked) so this doesn't fight the checked state's own var(--primary)
-     border (.rc-checkbox:checked below) while a selected row is hovered. */
-  tbody tr:hover .row-check:not(:checked), .row-check:focus-visible:not(:checked) { border-color: var(--bg); }
 
   .bulk-bar {
     display: none; align-items: center; gap: 0.7rem; border: 1px solid var(--border); background: var(--bg-subtle);
