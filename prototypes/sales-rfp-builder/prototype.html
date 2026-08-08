@@ -171,20 +171,32 @@
   .sidebar-user .who span { font-size: 0.72rem; color: var(--fg-muted); }
 
   /* ---------------- Main ---------------- */
-  .main { flex: 1; min-width: 0; padding: 1.6rem 2rem 3rem; }
+  .main { flex: 1; min-width: 0; padding: 1.3rem 1.8rem 2.2rem; }
   .screen { display: none; }
   .screen.is-active { display: block; }
+  /* Gives the RFP-results view (see .page-tab-chip below) a visible boundary of its own — a nested panel,
+     not a full-bleed page like Inventory's table — per the user: the built rate card should read as
+     contained/secondary, not a co-equal page. */
+  /* --bg (not --card-bg) so the raised --card-bg/--bg-subtle tone every child (stat-tile, show-card, banner)
+     already uses actually reads as raised against it — same page-vs-card layering the Rate Card table itself
+     uses (v26: table is --bg, its cells' own surfaces are lighter). Using --card-bg here would leave the
+     panel and its children the same flat tone. */
+  .screen-contained { border: 1px solid var(--border); background: var(--bg); border-radius: var(--radius); padding: 1rem 1.2rem 1.3rem; }
 
-  .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
-  .page-head h1 { font-size: 1.3rem; margin: 0; letter-spacing: -0.01em; }
-  /* Replaces the plain "Inventory" <h1> once a vetting pass has run — lets the built rate card live as a
-     second, persistent page-level tab rather than only existing inside the "+ New RFP" modal. Same type
-     scale as the h1 it replaces; weight/color (not an underline, page-head has no shared border to anchor
-     one) is what distinguishes the active tab, matching this file's muted/active convention elsewhere. */
-  .page-tabs { display: flex; align-items: baseline; gap: 1.3rem; }
-  .page-tab { font-size: 1.3rem; font-weight: 500; letter-spacing: -0.01em; color: var(--fg-muted); cursor: pointer; }
-  .page-tab:hover { color: var(--fg); }
-  .page-tab.is-active { color: var(--fg); font-weight: 700; cursor: default; }
+  .page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .page-head h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; cursor: pointer; }
+  /* "Inventory" stays the one fixed, prominent page title regardless of which view is showing — it does not
+     dim or shrink when the RFP tab is active. The built rate card is instead surfaced as a small contained
+     pill/chip beside it (.page-tab-chip, injected by ensureRfpTab() once a vetting pass has run), so the
+     hierarchy (Inventory = primary, the rate card = a secondary, dismissable-feeling sub-view) holds no
+     matter which one is currently on screen — not a symmetric tab pair that swaps bold/muted. */
+  .page-tabs { display: flex; align-items: center; gap: 0.7rem; }
+  .page-tab-chip {
+    font-size: 0.78rem; font-weight: 500; color: var(--fg-muted); cursor: pointer; white-space: nowrap;
+    padding: 0.28rem 0.65rem; border: 1px solid var(--border); border-radius: 999px; background: var(--muted-bg);
+  }
+  .page-tab-chip:hover { color: var(--fg); border-color: var(--fg-muted); }
+  .page-tab-chip.is-active { color: var(--primary-fg); background: var(--primary); border-color: var(--primary); font-weight: 600; }
   .crumb { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.3rem; }
   .crumb a { color: var(--primary); text-decoration: none; cursor: pointer; }
   .crumb a:hover { text-decoration: underline; }
@@ -211,13 +223,13 @@
   .btn.big { padding: 0.6rem 1.1rem; font-size: 0.88rem; }
 
   /* ----- Rate Card screen ----- */
-  .tabbar { display: flex; gap: 0.15rem; border-bottom: 1px solid var(--border); margin-bottom: 0.9rem; flex-wrap: wrap; }
-  .tabbar .tab { padding: 0.55rem 0.8rem; font-size: 0.82rem; color: var(--fg-muted); border-bottom: 2px solid transparent; cursor: default; }
+  .tabbar { display: flex; gap: 0.15rem; border-bottom: 1px solid var(--border); margin-bottom: 0.7rem; flex-wrap: wrap; }
+  .tabbar .tab { padding: 0.42rem 0.7rem; font-size: 0.82rem; color: var(--fg-muted); border-bottom: 2px solid transparent; cursor: default; }
   .tabbar .tab.is-active { color: var(--fg); font-weight: 600; border-color: var(--primary); }
   .tabbar .tab.is-clickable { cursor: pointer; }
   .tabbar .tab.is-clickable:hover { color: var(--fg); }
 
-  .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
   .search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem; background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem; }
   /* Real lucide-search markup (confirmed live in Storybook's InputGroup story, size-4/16px, stroke=currentColor
      inheriting the muted-foreground color already used here) — replaces the 🔍 emoji placeholder everywhere
@@ -225,7 +237,7 @@
   .icon-search { flex: none; }
   .search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 0.82rem; }
 
-  .toolbar-hint { font-size: 0.74rem; color: var(--fg-muted); margin: -0.35rem 0 0.7rem; }
+  .toolbar-hint { font-size: 0.74rem; color: var(--fg-muted); margin: -0.3rem 0 0.5rem; }
 
   .chiprow { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; flex-wrap: wrap; align-items: center; }
   /* Per the user: Sort/Group chips no longer get the green success-token treatment — same plain neutral
@@ -581,7 +593,7 @@
   .side-stat:last-of-type { border-bottom: none; }
   .side-stat b { font-variant-numeric: tabular-nums; }
 
-  .banner { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--border); background: var(--bg-subtle); border-radius: var(--radius); padding: 0.75rem 0.95rem; font-size: 0.8rem; color: var(--fg-muted); margin-bottom: 1.1rem; }
+  .banner { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--border); background: var(--bg-subtle); border-radius: var(--radius); padding: 0.6rem 0.8rem; font-size: 0.8rem; color: var(--fg-muted); margin-bottom: 0.85rem; }
   .banner .ic { font-size: 1rem; flex: none; }
   .banner b { color: var(--fg); }
 
@@ -595,29 +607,29 @@
   .vet-step.is-done { color: var(--fg); }
 
   /* ----- results ----- */
-  .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.2rem; }
+  .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; margin-bottom: 0.9rem; }
   @media (max-width: 980px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
-  .stat-tile { border: 1px solid var(--border); background: var(--card-bg); border-radius: var(--radius); padding: 0.8rem 0.95rem; }
-  .stat-tile .num { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .stat-tile .lbl { font-size: 0.72rem; color: var(--fg-muted); margin-top: 0.2rem; }
+  .stat-tile { border: 1px solid var(--border); background: var(--card-bg); border-radius: var(--radius); padding: 0.6rem 0.8rem; }
+  .stat-tile .num { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat-tile .lbl { font-size: 0.72rem; color: var(--fg-muted); margin-top: 0.15rem; }
   .stat-tile.rec .num { color: var(--success); }
   .stat-tile.flag .num { color: var(--warning); }
   .stat-tile.elim .num { color: var(--destructive); }
 
-  .result-tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
-  .result-tab { padding: 0.5rem 0.9rem; font-size: 0.83rem; border-bottom: 2px solid transparent; cursor: pointer; color: var(--fg-muted); display: flex; align-items: center; gap: 0.4rem; }
+  .result-tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid var(--border); margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .result-tab { padding: 0.4rem 0.75rem; font-size: 0.83rem; border-bottom: 2px solid transparent; cursor: pointer; color: var(--fg-muted); display: flex; align-items: center; gap: 0.4rem; }
   .result-tab .cnt { background: var(--muted-bg); border-radius: 999px; padding: 0.05rem 0.45rem; font-size: 0.72rem; }
   .result-tab.is-active { color: var(--fg); font-weight: 600; border-color: var(--primary); }
 
   .result-panel { display: none; }
   .result-panel.is-active { display: block; }
-  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.9rem; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.7rem; }
 
-  .show-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-bg); padding: 0.95rem 1.05rem; }
+  .show-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-bg); padding: 0.75rem 0.85rem; }
   .show-card.status-recommended { border-left: 3px solid var(--success); }
   .show-card.status-flagged { border-left: 3px solid var(--warning); }
   .show-card.status-eliminated { border-left: 3px solid var(--destructive); opacity: 0.92; }
-  .sc-top { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.35rem; }
+  .sc-top { display: flex; justify-content: space-between; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.3rem; }
   .sc-name { font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
   .sc-hosts { font-size: 0.74rem; color: var(--fg-muted); }
   .sc-cpm { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 0.95rem; white-space: nowrap; }
@@ -637,7 +649,7 @@
   .empty-note { color: var(--fg-muted); font-size: 0.85rem; padding: 1rem 0; }
 
   /* ----- proposal bar & overrides ----- */
-  .proposal-bar { border: 1px solid var(--border); background: var(--bg-subtle); border-radius: var(--radius); padding: 0.7rem 0.95rem; font-size: 0.83rem; }
+  .proposal-bar { border: 1px solid var(--border); background: var(--bg-subtle); border-radius: var(--radius); padding: 0.55rem 0.8rem; font-size: 0.83rem; }
   .proposal-summary { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
   .proposal-summary b { font-variant-numeric: tabular-nums; }
   .proposal-hint { color: var(--fg-muted); font-size: 0.74rem; margin-top: 0.3rem; }
@@ -721,7 +733,7 @@
     <section id="screen-ratecard">
       <div class="page-head">
         <div class="page-tabs" id="page-tabs">
-          <div class="page-tab is-active" id="page-tab-inventory" onclick="switchScreen('inventory')">Inventory</div>
+          <h1 onclick="switchScreen('inventory')">Inventory</h1>
         </div>
         <button class="btn primary" onclick="openRfpModal()">+ New RFP</button>
       </div>
@@ -806,7 +818,7 @@
 
       </div>
 
-      <div id="view-rfpresults" class="screen">
+      <div id="view-rfpresults" class="screen screen-contained">
         <div id="results-body" style="display:none;">
           <div class="banner">
             <span class="ic">ℹ️</span>
@@ -7005,7 +7017,7 @@ function ensureRfpTab(){
   let tab = document.getElementById("page-tab-rfp");
   if (!tab){
     tab = document.createElement("div");
-    tab.className = "page-tab";
+    tab.className = "page-tab-chip";
     tab.id = "page-tab-rfp";
     tab.onclick = () => switchScreen("rfpresults");
     document.getElementById("page-tabs").appendChild(tab);
@@ -7015,7 +7027,6 @@ function ensureRfpTab(){
 function switchScreen(which){
   document.getElementById("view-inventory").classList.toggle("is-active", which === "inventory");
   document.getElementById("view-rfpresults").classList.toggle("is-active", which === "rfpresults");
-  document.getElementById("page-tab-inventory").classList.toggle("is-active", which === "inventory");
   const rfpTab = document.getElementById("page-tab-rfp");
   if (rfpTab) rfpTab.classList.toggle("is-active", which === "rfpresults");
 }
