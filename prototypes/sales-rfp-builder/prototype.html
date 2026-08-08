@@ -281,8 +281,13 @@
   .sort-arrow.is-active { opacity: 1; color: var(--primary); }
   .col-menu-btn {
     border: none; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 1rem; line-height: 1;
-    padding: 0.15rem 0.3rem; border-radius: 4px; margin-left: auto;
+    padding: 0.15rem 0.3rem; border-radius: 4px; margin-left: auto; opacity: 0;
   }
+  /* Hidden until hover/focus, matching Notion/Airtable/Linear's own header-menu convention — with 33 columns
+     visible at once, an always-on "..." per header is real noise the hover-reveal removes for free. Still
+     shown while its own menu is actually open (:has), so it doesn't vanish out from under an open popover if
+     the pointer drifts off the header cell while a checkbox list etc. is being read/clicked inside it. */
+  .col-th:hover .col-menu-btn, .col-th:focus-within .col-menu-btn, .col-th:has(.col-menu.is-open) .col-menu-btn { opacity: 1; }
   .col-menu-btn:hover { background: var(--muted-bg); color: var(--fg); }
   /* Matches Figma's own Dropdown Menu directly (node-id=430-17998): bg-popover, rounded-md=var(--radius-md),
      the named shadow/md effect (two layers, precise alpha below — not the rounder approximation used before),
