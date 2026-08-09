@@ -695,6 +695,22 @@
   .pill.unvetted { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
   .pill.removed { background: var(--muted-bg); color: var(--fg-muted); }
 
+  /* Shared by #cta-row (page-level RFP results view) and #rfp-response-actions (modal's RFP Response step) —
+     both screens can run taller than one viewport, so per the user their bottom action row should stay
+     visible while scrolling rather than requiring a scroll-to-the-very-end to find it. position:sticky
+     (not fixed) is what gives the "or stick to the bottom of the content if it ends before the fold" half
+     for free: once the row's own containing block's end is reached, it just settles into place there
+     instead of floating disconnected over empty space — no JS/scroll-listener needed either way. Negative
+     margins cancel each container's own padding so the sticky background paints full-bleed edge-to-edge
+     (otherwise scrolling content would visibly peek out past the bar on both sides); the matching padding
+     put back keeps the buttons themselves inset the same as before. */
+  .sticky-cta-row { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-start; background: var(--bg); border-top: 1px solid var(--border); }
+  #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); }
+  #rfp-response-actions { margin: 0.4rem -1.5rem -1.7rem; padding: 0.85rem 1.5rem 1.7rem; border-radius: 0 0 calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem); }
+  .cta-primary-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .cta-assist { font-size: 0.74rem; color: var(--fg-muted); }
+  .cta-assist b { color: var(--fg); font-variant-numeric: tabular-nums; }
+
   .vet-chip { display: inline-flex; align-items: center; gap: 0.3rem; border-radius: 5px; padding: 0.12rem 0.5rem; font-size: 0.72rem; white-space: nowrap; }
   .vet-chip.approved { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
   .vet-chip.unvetted { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
@@ -896,9 +912,12 @@
             <div class="proposal-hint">Use “Remove” on a card to leave it out, or “Include anyway” on an eliminated show to override the system and send it for vetting too.</div>
           </div>
 
-          <div id="cta-row" style="margin-top:1rem; display:flex; gap:0.6rem; flex-wrap:wrap;">
+          <div id="cta-row" class="sticky-cta-row">
             <button class="btn" onclick="editCurrentRfp()">← Back to RFP Response</button>
-            <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Send <span id="send-count">0</span> unvetted shows to Ad Ops →</button>
+            <div class="cta-primary-group">
+              <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Build RFP →</button>
+              <div class="cta-assist">Also sends <b id="send-count">0</b> unvetted shows to Ad Ops.</div>
+            </div>
           </div>
 
           <div id="handoff-panel" style="display:none; margin-top:1.2rem;"></div>
@@ -1007,7 +1026,7 @@
           </div>
         </div>
 
-        <div style="display:flex; gap:0.6rem; margin-top:0.4rem;">
+        <div id="rfp-response-actions" class="sticky-cta-row">
           <button class="btn" onclick="showRfpStep('start')">← Back</button>
           <button class="btn primary big" onclick="runVetting()">Run Vetting — Pass 1</button>
         </div>
