@@ -772,7 +772,7 @@
         <div class="page-tabs" id="page-tabs">
           <h1 onclick="switchToInventory()">Inventory</h1>
         </div>
-        <button class="btn primary" onclick="openRfpModal()">+ New RFP</button>
+        <button class="btn primary" onclick="openRfpModal()">+ New Rate Card</button>
       </div>
 
       <div id="view-inventory" class="screen is-active">
@@ -914,8 +914,8 @@
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="rfp-title">
       <div class="modal-head">
         <div>
-          <div class="crumb">Embedded / New RFP</div>
-          <h1 id="rfp-title">New RFP</h1>
+          <div class="crumb">Embedded / New Rate Card</div>
+          <h1 id="rfp-title">New Rate Card</h1>
         </div>
         <button class="modal-close" onclick="closeRfpModal()" aria-label="Close">✕</button>
       </div>
@@ -6839,11 +6839,11 @@ function renderBulkBar(){
   bar.style.display = "flex";
   const onEmbedded = currentTab === "ratecard";
   const disabled = !onEmbedded || !activeRfpId;
-  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!activeRfpId ? "Start an RFP first (+ New RFP), then add shows here" : `Adds to your currently open rate card (${esc(rfpTabLabel(VET()))})`);
+  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!activeRfpId ? "Start a Rate Card first (+ New Rate Card), then add shows here" : `Adds to your currently open rate card (${esc(rfpTabLabel(VET()))})`);
   bar.innerHTML = `
     <span><b>${count}</b> selected</span>
     <button type="button" class="btn" onclick="clearSelection()">Clear selection</button>
-    <button type="button" class="btn primary"${disabled ? " disabled" : ""} title="${esc(title)}" onclick="addSelectedToRfp()">Add to RFP</button>
+    <button type="button" class="btn primary"${disabled ? " disabled" : ""} title="${esc(title)}" onclick="addSelectedToRfp()">Add to Rate Card</button>
   `;
 }
 
@@ -6921,7 +6921,7 @@ function resetRfp(){
   document.getElementById("f-exclusivity").checked = false;
   document.getElementById("genre-checks").innerHTML = TARGET_GENRE_OPTIONS.map((g,i) => `
     <label class="gcheck" id="gcheck-${i}"><input type="checkbox" value="${g}" onchange="toggleGcheck(${i})"> ${g}</label>`).join("");
-  document.getElementById("rfp-title").textContent = "New RFP";
+  document.getElementById("rfp-title").textContent = "New Rate Card";
   /* Deliberately does NOT touch RFPS/activeRfpId or the shared #view-rfpresults DOM (cta-row/handoff-panel
      etc.) — this only clears the modal's own form for a fresh draft. It used to also wipe the single global
      VET object, which is exactly what made multiple simultaneous rate cards impossible: opening "+ New RFP"
@@ -7006,7 +7006,7 @@ function onUploadFile(){
 }
 
 function loadBabbelSample(){
-  document.getElementById("rfp-title").textContent = "New RFP — Babbel × Oxford Road";
+  document.getElementById("rfp-title").textContent = "New Rate Card — Babbel × Oxford Road";
   showRfpStep("response");
   document.getElementById("scrape-banner").style.display = "flex";
   document.getElementById("f-advertiser").value = "Babbel";
@@ -7029,7 +7029,7 @@ function loadBabbelSample(){
 }
 
 function startScratch(){
-  document.getElementById("rfp-title").textContent = "New RFP — build from scratch";
+  document.getElementById("rfp-title").textContent = "New Rate Card — build from scratch";
   showRfpStep("response");
 }
 
@@ -7282,7 +7282,7 @@ function renderResults(){
     recommended: "No shows landed in this bucket for the criteria entered.",
     flagged: "No shows landed in this bucket for the criteria entered.",
     eliminated: "No shows landed in this bucket for the criteria entered.",
-    manual: "No shows added directly from Inventory yet — select rows on the Embedded tab and use “Add to RFP.”",
+    manual: "No shows added directly from Inventory yet — select rows on the Embedded tab and use “Add to Rate Card.”",
   };
   ["recommended","flagged","eliminated","manual"].forEach(b => {
     const grid = document.querySelector(`#panel-${b} .result-grid`);
