@@ -6837,14 +6837,103 @@ function renderBulkBar(){
   const count = state().selected.size;
   if (!count){ bar.style.display = "none"; bar.innerHTML = ""; return; }
   bar.style.display = "flex";
-  const onEmbedded = currentTab === "ratecard";
-  const disabled = !onEmbedded || !activeRfpId;
-  const title = !onEmbedded ? "Only available for Embedded shows right now" : (!activeRfpId ? "Start a Rate Card first (+ New Rate Card), then add shows here" : `Adds to your currently open rate card (${esc(rfpTabLabel(VET()))})`);
   bar.innerHTML = `
     <span><b>${count}</b> selected</span>
     <button type="button" class="btn" onclick="clearSelection()">Clear selection</button>
-    <button type="button" class="btn primary"${disabled ? " disabled" : ""} title="${esc(title)}" onclick="addSelectedToRfp()">Add to Rate Card</button>
+    <div class="tb-control" id="rc-bulk-actions">
+      <button type="button" class="btn primary" onclick="toggleBulkActionsMenu(event)">Bulk Actions ▾</button>
+      <div class="col-menu" id="rc-bulk-actions-menu"></div>
+    </div>
   `;
+}
+/* Export CSV works on any tab (pure data export, no dependency on the vetting engine); Create New Rate
+   Card / Add to an existing card stay Embedded-only — same reasoning as before (evaluateShow()/showCard()
+   and the whole proposal model only understand the Embedded roster's field shape). Listed dynamically, one
+   item per currently open RFPS card, per the user — replaces the old single "always adds to whichever card
+   happens to be active" button with an explicit choice, so it's never silently ambiguous which card grows. */
+function toggleBulkActionsMenu(event){
+  event.stopPropagation();
+  const menu = document.getElementById("rc-bulk-actions-menu");
+  const willOpen = !menu.classList.contains("is-open");
+  document.querySelectorAll(".col-menu.is-open").forEach(p => p.classList.remove("is-open"));
+  if (willOpen){
+    renderBulkActionsMenu();
+    menu.classList.add("is-open");
+  }
+}
+function renderBulkActionsMenu(){
+  const menu = document.getElementById("rc-bulk-actions-menu");
+  if (!menu) return;
+  const onEmbedded = currentTab === "ratecard";
+  let html = `<button type="button" class="col-menu-item" onclick="bulkExportCsv()">Export CSV</button>`;
+  if (onEmbedded){
+    html += `<div class="col-menu-divider"></div>`;
+    html += `<button type="button" class="col-menu-item" onclick="bulkCreateNewRateCard()">Create New Rate Card</button>`;
+    if (RFPS.length){
+      html += `<div class="col-menu-divider"></div>`;
+      html += RFPS.map(card => `<button type="button" class="col-menu-item" onclick="bulkAddToRateCard('${card.id}')">Add to ${esc(rfpTabLabel(card))}</button>`).join("");
+    }
+  }
+  menu.innerHTML = html;
+}
+function csvEscape(v){
+  const s = v == null ? "" : String(v);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+/* Mirrors renderCell()'s per-column-type formatting but returns plain text instead of HTML — a link column
+   exports its real URL (not the on-screen "Open ↗" label), a listCount column exports the full list (not
+   just the truncated on-screen count), matching what a CSV consumer actually wants over what a table cell
+   has room to show. */
+function csvCellValue(col, s){
+  if (col.tags) return s[col.key] || "";
+  if (col.link) return s[col.key] || "";
+  if (col.listCount) return (s[col.key] || []).join("; ");
+  if (col.longText) return s[col.key] || "";
+  const v = col.displayKey ? s[col.displayKey] : s[col.key];
+  if (v == null || v === "") return "";
+  if (col.pct) return `${Math.round(v * 100)}%`;
+  if (col.money) return `$${typeof v === "number" ? v.toLocaleString() : v}`;
+  if (col.thousands) return typeof v === "number" ? v.toLocaleString() : v;
+  return v;
+}
+function bulkExportCsv(){
+  const cols = visibleCols();
+  const selectedShows = rows0().filter(s => state().selected.has(s.name));
+  if (!selectedShows.length) return;
+  const lines = [cols.map(c => csvEscape(c.label)).join(",")];
+  selectedShows.forEach(s => lines.push(cols.map(c => csvEscape(csvCellValue(c, s))).join(",")));
+  const blob = new Blob([lines.join("\r\n")], {type: "text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${TABS[currentTab].tabLabel.replace(/\s+/g, "-")}-selected-${selectedShows.length}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  document.getElementById("rc-bulk-actions-menu").classList.remove("is-open");
+}
+function bulkCreateNewRateCard(){
+  const selectedShows = rows0().filter(s => state().selected.has(s.name));
+  if (!selectedShows.length) return;
+  const card = { id: "rfp" + (++rfpIdCounter), rfp: null, formFields: null, evaluated: [], filteredOut: [], overrides: {}, sentToAdOps: false, activeResultTab: "manual" };
+  RFPS.push(card);
+  activeRfpId = card.id;
+  selectedShows.forEach(s => card.evaluated.push(manualEntry(s)));
+  state().selected.clear();
+  renderRateCard();
+  ensureRfpTab(card);
+  switchToRfp(card.id);
+}
+function bulkAddToRateCard(cardId){
+  const card = RFPS.find(r => r.id === cardId);
+  if (!card) return;
+  activeRfpId = cardId;
+  const already = new Set(card.evaluated.map(e => e.show.name));
+  rows0().filter(s => state().selected.has(s.name) && !already.has(s.name)).forEach(s => card.evaluated.push(manualEntry(s)));
+  state().selected.clear();
+  renderRateCard();
+  switchToRfp(cardId);
 }
 
 /* Sets .table-wrap's height to whatever vertical space is actually left in the viewport — measured directly
@@ -7111,11 +7200,13 @@ function computeVettingStatus(show, rfp){
   return "unvetted";
 }
 
-/* Bulk "Add to RFP": a manual, hand-picked add path alongside Vetting Pass 1, per the user — selected
-   Embedded shows go straight into the active card's evaluated array with bucket:"manual", bypassing evaluateShow()'s
-   exclusivity/prior-decline/CPM checks entirely (not run through them, not "passed" them). bucket:"manual"
-   still works with the existing defaultIncluded()/isIncluded()/toggleOverride() override system unmodified
-   — defaultIncluded() already treats any non-"eliminated" bucket as included by default. */
+/* Shared by all three Bulk Actions paths (Create New Rate Card, Add to an existing card) — a manual,
+   hand-picked add alongside Vetting Pass 1, per the user. Selected Embedded shows go straight into a card's
+   evaluated array with bucket:"manual", bypassing evaluateShow()'s exclusivity/prior-decline/CPM checks
+   entirely (not run through them, not "passed" them). bucket:"manual" still works with the existing
+   defaultIncluded()/isIncluded()/toggleOverride() override system unmodified — defaultIncluded() already
+   treats any non-"eliminated" bucket as included by default. Reads VET() for rfp context, so callers must
+   set activeRfpId to the TARGET card before calling this, not leave it pointing at whichever was active. */
 function manualEntry(show){
   const card = VET();
   const rfp = (card && card.rfp) || {advertiser: ""};
@@ -7127,22 +7218,6 @@ function manualEntry(show){
   }
   return {show, bucket: "manual", reasons, vettingStatus};
 }
-/* Targets whichever card is currently "active" (activeRfpId) — the one last viewed/built, which persists
-   across switching to Inventory and back. With multiple cards open, this is a real judgment call (add to
-   the most-recently-active one rather than showing an explicit picker) — the bulk-bar's own title tooltip
-   names which card it'll land in, so it's never silently ambiguous. */
-function addSelectedToRfp(){
-  if (currentTab !== "ratecard" || !activeRfpId) return;
-  const card = VET();
-  const sel = state().selected;
-  if (!sel.size) return;
-  const already = new Set(card.evaluated.map(e => e.show.name));
-  rows0().filter(s => sel.has(s.name) && !already.has(s.name)).forEach(s => card.evaluated.push(manualEntry(s)));
-  sel.clear();
-  renderRateCard();
-  switchToRfp(card.id);
-}
-
 function runVetting(){
   const rfp = {
     advertiser: document.getElementById("f-advertiser").value.trim(),
@@ -7184,9 +7259,17 @@ function finishVetting(rfp, formFields){
 
   const card = (draftRfpId && RFPS.find(r => r.id === draftRfpId)) || { id: "rfp" + (++rfpIdCounter) };
   if (!RFPS.includes(card)) RFPS.push(card);
+  /* Preserve hand-picked "Bulk Actions -> Add to Rate Card"/"Create New Rate Card" manual entries across a
+     (re-)run of Vetting Pass 1 on this same card — without this, editing a card's RFP Response and running
+     vetting again would silently wipe out everything added via the manual path, since card.evaluated is
+     otherwise fully replaced below. Skips any that the fresh genre-matched evaluation already covers, so a
+     manually-added show that now also matches the criteria doesn't end up duplicated. */
+  const preservedManual = (card.evaluated || []).filter(e => e.bucket === "manual");
   card.rfp = rfp;
   card.formFields = formFields;
   card.evaluated = genreMatched.map(s => evaluateShow(s, rfp));
+  const evaluatedNames = new Set(card.evaluated.map(e => e.show.name));
+  preservedManual.filter(e => !evaluatedNames.has(e.show.name)).forEach(e => card.evaluated.push(e));
   card.filteredOut = filteredOut;
   card.overrides = {};
   card.sentToAdOps = false;
@@ -7297,7 +7380,7 @@ function renderResults(){
   const removedCount = card.evaluated.filter(e => defaultIncluded(e.bucket) && !isIncluded(e)).length;
 
   document.getElementById("prop-total").textContent = proposal.length;
-  document.getElementById("prop-agency").textContent = card.rfp.agency || "the requesting agency";
+  document.getElementById("prop-agency").textContent = (card.rfp && card.rfp.agency) || "the requesting agency";
   document.getElementById("prop-approved").textContent = approved.length;
   document.getElementById("prop-unvetted").textContent = needsVetting.length;
   document.getElementById("prop-removed").textContent = removedCount;
@@ -7350,12 +7433,12 @@ function buildHandoffHtml(card){
   const proposal = card.evaluated.filter(isIncluded);
   const approved = proposal.filter(e => e.vettingStatus === "approved");
   const needsVetting = proposal.filter(e => e.vettingStatus !== "approved");
-  const agency = card.rfp.agency || "the requesting agency";
+  const agency = (card.rfp && card.rfp.agency) || "the requesting agency";
   return `
     <div class="handoff-card">
       <h4>✅ Sent to Ad Ops for vetting</h4>
       <p><b>${needsVetting.length}</b> show${needsVetting.length === 1 ? "" : "s"} below ${needsVetting.length === 1 ? "hasn't" : "haven't"} yet approved or declined a partnership with
-        <b>${card.rfp.advertiser || "this advertiser"}</b> — Ad Ops will reach out to each one, log the approve/decline "whys" back onto this RFP, then the finalized list goes back to <b>${agency}</b>, the agency that submitted the original request.
+        <b>${(card.rfp && card.rfp.advertiser) || "this advertiser"}</b> — Ad Ops will reach out to each one, log the approve/decline "whys" back onto this RFP, then the finalized list goes back to <b>${agency}</b>, the agency that submitted the original request.
         ${approved.length ? `<b>${approved.length}</b> show${approved.length === 1 ? "" : "s"} ${approved.length === 1 ? "is" : "are"} already cleared and ${approved.length === 1 ? "needs" : "need"} no further vetting.` : ""}
       </p>
       ${needsVetting.length ? `<div class="handoff-list">
