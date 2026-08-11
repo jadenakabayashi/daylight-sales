@@ -1,0 +1,612 @@
+<title>Sales — RFPs</title>
+<style>
+  /* Design tokens copied verbatim from prototypes/sales-rfp-builder/prototype.html — that file did the real
+     Figma/Storybook fidelity work (see its notes.md v17-v26) confirming this neutral zinc palette; reusing the
+     same tokens here keeps every prototype in this repo visually consistent instead of re-deriving them. */
+  :root {
+    --bg: #fafafa;
+    --bg-subtle: #f5f5f5;
+    --sidebar-bg: #fafafa;
+    --sidebar-fg: #3f3f46;
+    --card-bg: #fafafa;
+    --fg: #171717;
+    --fg-muted: #737373;
+    --muted-bg: #f5f5f5;
+    --border: #e5e5e5;
+    --primary: #171717;
+    --primary-fg: #fafafa;
+    --accent: #f5f5f5;
+    --ring: #171717;
+    --destructive: #ef4444;
+    --destructive-bg: #fef2f2;
+    --destructive-border: #fecaca;
+    --success: #2a9d90;
+    --success-bg: #ecf7f5;
+    --success-border: #b9e2dc;
+    --warning: #b45309;
+    --warning-bg: #fef6e7;
+    --warning-border: #f3dfb1;
+    --radius: .5rem;
+    --radius-sm: 2px;
+    --radius-md: 6px;
+    --popover-bg: var(--bg);
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
+      --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
+      --primary: #fafafa; --primary-fg: #171717; --accent: #404040; --ring: #fafafa;
+      --destructive: #f87171; --destructive-bg: #2a1416; --destructive-border: #4c1d1d;
+      --success: #2eb88a; --success-bg: #0f2620; --success-border: #1c4a3a;
+      --warning: #f0a63d; --warning-bg: #2c1f0a; --warning-border: #5a3f14;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
+    --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
+    --primary: #fafafa; --primary-fg: #171717; --accent: #404040; --ring: #fafafa;
+    --destructive: #f87171; --destructive-bg: #2a1416; --destructive-border: #4c1d1d;
+    --success: #2eb88a; --success-bg: #0f2620; --success-border: #1c4a3a;
+    --warning: #f0a63d; --warning-bg: #2c1f0a; --warning-border: #5a3f14;
+  }
+  :root[data-theme="light"] {
+    --bg: #fafafa; --bg-subtle: #f5f5f5; --sidebar-bg: #fafafa; --sidebar-fg: #3f3f46;
+    --card-bg: #fafafa; --fg: #171717; --fg-muted: #737373; --muted-bg: #f5f5f5; --border: #e5e5e5;
+    --primary: #171717; --primary-fg: #fafafa; --accent: #f5f5f5; --ring: #171717;
+    --destructive: #ef4444; --destructive-bg: #fef2f2; --destructive-border: #fecaca;
+    --success: #2a9d90; --success-bg: #ecf7f5; --success-border: #b9e2dc;
+    --warning: #b45309; --warning-bg: #fef6e7; --warning-border: #f3dfb1;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: var(--bg); color: var(--fg); font-size: 14px; line-height: 1.45; }
+  ::selection { background: var(--ring); color: #fff; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  a { color: inherit; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------------- Sidebar (structure/classes copied from sales-rfp-builder) ---------------- */
+  .sidebar {
+    width: 220px; flex: 0 0 220px; background: var(--sidebar-bg); color: var(--sidebar-fg);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    padding: 1.1rem 0.85rem; position: sticky; top: 0; height: 100vh;
+  }
+  .brand { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem 1.1rem; font-weight: 700; font-size: 1.05rem; color: var(--fg); }
+  .brand-mark { width: 22px; height: 22px; border-radius: 6px; background: radial-gradient(circle at 30% 30%, var(--ring), var(--primary)); flex: none; }
+  .nav-group { margin-bottom: 0.15rem; }
+  .nav-item {
+    display: flex; align-items: center; gap: 0.55rem; padding: 0.4rem 0.5rem; border-radius: calc(var(--radius) - 0.15rem);
+    font-size: 0.85rem; color: var(--sidebar-fg); cursor: default; white-space: nowrap;
+  }
+  .nav-item .ic { width: 15px; text-align: center; opacity: 0.75; font-size: 0.85em; }
+  .nav-item.is-active { background: var(--muted-bg); color: var(--fg); font-weight: 600; }
+  .nav-item.is-clickable { cursor: pointer; }
+  .nav-item.is-clickable:hover { background: var(--muted-bg); }
+  .nav-sub { padding-left: 1.6rem; }
+  .nav-sub .nav-item { font-size: 0.82rem; padding: 0.32rem 0.5rem; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-user { display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.4rem 0.2rem; border-top: 1px solid var(--border); margin-top: 0.6rem; padding-top: 0.8rem; }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--ring), var(--primary)); flex: none; }
+  .sidebar-user .who { line-height: 1.25; }
+  .sidebar-user .who b { display: block; font-size: 0.82rem; color: var(--fg); }
+  .sidebar-user .who span { font-size: 0.72rem; color: var(--fg-muted); }
+
+  /* ---------------- Main / page shell ---------------- */
+  .main { flex: 1; min-width: 0; padding: 1.3rem 1.8rem 2.2rem; }
+  .screen { display: none; }
+  .screen.is-active { display: block; }
+
+  .crumb { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.5rem; }
+  .crumb a { color: var(--primary); text-decoration: none; cursor: pointer; }
+  .crumb a:hover { text-decoration: underline; }
+  .crumb .sep { margin: 0 0.3rem; opacity: 0.6; }
+  .crumb .crumb-current { color: var(--fg-muted); }
+
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .page-head h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; }
+
+  .hint { font-size: 0.78rem; color: var(--fg-muted); margin: -0.3rem 0 0.9rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px;
+    border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+    padding: 0 16px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; line-height: 1.2;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .btn:hover { background: var(--muted-bg); }
+  .btn.ghost { border-color: transparent; background: transparent; box-shadow: none; }
+  .btn.ghost:hover { background: var(--muted-bg); }
+
+  /* ---------------- Toolbar: search + status filter ---------------- */
+  .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .search {
+    flex: 1; min-width: 200px; max-width: 320px; display: flex; align-items: center; gap: 0.4rem;
+    border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem;
+    background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem;
+  }
+  .icon-search { flex: none; }
+  .search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 0.82rem; }
+  .tb-select {
+    height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 0.6rem;
+    background: var(--bg); color: var(--fg); font-size: 0.83rem; cursor: pointer;
+  }
+
+  /* ---------------- Table ---------------- */
+  .table-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+  .table-wrap { overflow: auto; }
+  table { width: 100%; background: var(--bg); border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    position: sticky; top: 0; height: 40px; background: var(--bg); text-align: left; font-weight: 500;
+    color: var(--fg-muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 13px; padding: 0 10px;
+  }
+  tbody td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.row-clickable { cursor: pointer; }
+  tbody tr.row-clickable:hover td { background: var(--muted-bg); }
+  .cell-strong { font-weight: 500; }
+  .cell-muted { color: var(--fg-muted); }
+  .table-note { font-size: 0.76rem; color: var(--fg-muted); padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); }
+
+  /* ---------------- Status pill ---------------- */
+  .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.18rem 0.6rem; font-size: 0.74rem; font-weight: 500; white-space: nowrap; }
+  .pill-neutral { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+  .pill-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+  .pill-primary { background: var(--muted-bg); color: var(--primary); border: 1px solid var(--primary); }
+  .pill-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .pill-muted { background: var(--muted-bg); color: var(--fg-muted); border: 1px solid transparent; }
+
+  /* ---------------- Chips (badges + removable tags share the same look) ---------------- */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .chip-row-sm { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .chip { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--muted-bg); border-radius: 999px; padding: 0.25rem 0.65rem; font-size: 0.76rem; color: var(--fg); }
+  .chip-sm { padding: 0.12rem 0.55rem; font-size: 0.7rem; }
+  .chip .chip-x { opacity: 0.55; cursor: pointer; font-size: 0.85em; }
+  .chip .chip-x:hover { opacity: 1; }
+  .file-chip, .file-chip-sm {
+    display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none; color: var(--fg); background: var(--card-bg);
+  }
+  .file-chip:hover { background: var(--muted-bg); }
+  .file-chip-sm { padding: 0.15rem 0.5rem; font-size: 0.74rem; }
+
+  /* ---------------- Detail view ---------------- */
+  .detail-title-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .detail-title-row h1 { font-size: 1.35rem; }
+  .detail-sub { margin: 0.2rem 0 0; color: var(--fg-muted); font-size: 0.85rem; }
+  .detail-grid { display: flex; flex-direction: column; gap: 1rem; max-width: 720px; }
+  .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-bg); padding: 0.9rem 1.1rem 1.1rem; }
+  .card-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.7rem; }
+  .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.25rem; }
+  .field .k { font-size: 0.72rem; color: var(--fg-muted); }
+  .field .v { font-weight: 500; }
+  .notes-text { white-space: pre-line; font-size: 0.85rem; }
+  .empty-hint { color: var(--fg-muted); font-size: 0.82rem; margin: 0; }
+
+  /* ---------------- Add-chip popover (checklist, reused for newsletters/social) ---------------- */
+  .add-wrap { position: relative; display: inline-block; margin-top: 0.5rem; }
+  .add-chip-btn {
+    display: block; text-align: left; border: 1px dashed var(--border); border-radius: var(--radius-md);
+    padding: 0.35rem 0.65rem; background: transparent; color: var(--primary); font-size: 0.78rem; cursor: pointer;
+  }
+  .add-chip-btn:hover { background: var(--muted-bg); }
+  .col-menu {
+    display: none; position: absolute; top: 100%; left: 0; margin-top: 0.3rem; z-index: 30; min-width: 220px;
+    max-width: 280px; background: var(--popover-bg); border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.06), 0 4px 6px -1px rgba(0,0,0,0.1); padding: 4px;
+    font-size: 14px; color: var(--fg);
+  }
+  .col-menu.is-open { display: block; }
+  .col-filter-body { padding: 4px; max-height: 220px; overflow-y: auto; }
+  .col-check-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13.5px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; }
+  .col-check-item:hover { background: var(--muted-bg); }
+  .col-check-item input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; margin: 0; flex: none; position: relative;
+    width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer;
+  }
+  .col-check-item input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
+  .col-check-item input[type="checkbox"]:checked::after {
+    content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px;
+    border: solid var(--primary-fg); border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+</style>
+
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark"></span> Daylight</div>
+
+    <div class="nav-group">
+      <div class="nav-item"><span class="ic">&#9673;</span> Dashboard</div>
+      <div class="nav-item"><span class="ic">&#8594;</span> Campaigns</div>
+      <div class="nav-item"><span class="ic">&#9835;</span> Shows</div>
+      <div class="nav-item"><span class="ic">&#10003;</span> Brand Vetting</div>
+      <div class="nav-item"><span class="ic">&#9636;</span> Reports</div>
+    </div>
+
+    <div class="nav-label" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted);padding:.9rem .5rem .35rem;font-weight:600;">Internal</div>
+    <div class="nav-group">
+      <div class="nav-item"><span class="ic">&#9707;</span> Inventory</div>
+      <div class="nav-item is-active"><span class="ic">&#9670;</span> Sales</div>
+      <div class="nav-sub">
+        <div class="nav-item is-clickable is-active" onclick="showList()">RFPs</div>
+        <div class="nav-item">Orders</div>
+        <div class="nav-item">Agencies</div>
+      </div>
+      <div class="nav-item">Operations</div>
+      <div class="nav-item">Partnerships</div>
+      <div class="nav-item">Financial</div>
+      <div class="nav-item">Roster</div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user">
+      <span class="avatar"></span>
+      <div class="who"><b>Jade Nakabayashi</b><span>Daylight Media</span></div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <section id="screen-rfps" class="screen is-active">
+      <div class="crumb" id="crumb"></div>
+
+      <!-- ---------- LIST VIEW ---------- -->
+      <div id="view-list">
+        <div class="page-head"><h1>RFPs</h1></div>
+        <p class="hint">Prototype data — illustrative RFP records for this proto, not connected to Airtable or Valt. See notes.md for what's real vs. fabricated.</p>
+
+        <div class="toolbar">
+          <div class="search">
+            <svg class="icon-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input id="search-input" placeholder="Search RFPs…" oninput="onSearchInput(this.value)" />
+          </div>
+          <select class="tb-select" id="status-filter" onchange="onFilterChange(this.value)">
+            <option value="">All statuses</option>
+            <option value="not_started">Not Started</option>
+            <option value="awaiting_vet_responses">Awaiting Vet Responses</option>
+            <option value="rfp_submitted">RFP Submitted</option>
+            <option value="io_received">IO Received</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Received</th>
+                  <th>Submitted</th>
+                  <th>Name</th>
+                  <th>Advertiser</th>
+                  <th>Status</th>
+                  <th>Shows</th>
+                  <th>Newsletters</th>
+                  <th>Social Profiles</th>
+                  <th>Deliverable</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="rfp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-note" id="table-note"></div>
+        </div>
+      </div>
+
+      <!-- ---------- DETAIL VIEW ---------- -->
+      <div id="view-detail" style="display:none;"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // ---------------------------------------------------------------------
+  // Mock data. Show names are the real Daylight roster names already used
+  // in prototypes/sales-rfp-builder (grounded in refs/Foundation's actual
+  // roster file). Everything else here — the RFP records themselves,
+  // advertisers, newsletters, and social handles — is fabricated for this
+  // proto: there's no real "list of past RFPs" source yet. See notes.md.
+  // ---------------------------------------------------------------------
+  const NEWSLETTER_OPTIONS = [
+    { id: "nl-1", name: "The Morning Brief" },
+    { id: "nl-2", name: "Weekly Wrap-Up" },
+    { id: "nl-3", name: "Culture Currents" },
+    { id: "nl-4", name: "Sunday Longform" },
+  ];
+  const SOCIAL_OPTIONS = [
+    { id: "sp-1", name: "@shawnryanshow" },
+    { id: "sp-2", name: "@dannyjonespodcast" },
+    { id: "sp-3", name: "@womanevolvepod" },
+    { id: "sp-4", name: "@dailybeastpod" },
+  ];
+  const RFPS = [
+    {
+      id: "rfp-1", name: "Peloton — Fall Push", advertiser: "Peloton", status: "rfp_submitted",
+      received: "2026-07-02", submitted: "2026-07-10",
+      shows: ["The Shawn Ryan Show", "Crime, Conspiracy, Cults, Murder"],
+      newsletters: ["nl-1"], social: ["sp-1", "sp-2"],
+      deliverable: { filename: "peloton-fall-push-onesheet.pdf" },
+      notes: "Agency wants mid-roll only, no host-read on News/Politics shows.",
+    },
+    {
+      id: "rfp-2", name: "AG1 — Evergreen Renewal", advertiser: "Athletic Greens (AG1)", status: "io_received",
+      received: "2026-06-18", submitted: "2026-06-25",
+      shows: ["The Danny Jones Podcast"], newsletters: ["nl-2"], social: [],
+      deliverable: { filename: "ag1-renewal-io.pdf" }, notes: "",
+    },
+    {
+      id: "rfp-3", name: "BetterHelp — Q3 Awareness", advertiser: "BetterHelp", status: "awaiting_vet_responses",
+      received: "2026-07-20", submitted: null,
+      shows: ["Woman Evolve", "Inside of You with Michael Rosenbaum"], newsletters: [], social: ["sp-3"],
+      deliverable: null, notes: "Waiting on Ad Ops to confirm host availability for both shows.",
+    },
+    {
+      id: "rfp-4", name: "Babbel — Language Learning Sprint", advertiser: "Babbel", status: "closed",
+      received: "2026-05-02", submitted: "2026-05-14",
+      shows: ["The Shawn Ryan Show"], newsletters: ["nl-1", "nl-3"], social: ["sp-1"],
+      deliverable: { filename: "babbel-sprint-brief.pdf" },
+      notes: "Campaign wrapped early — see the Vetting Pass 1 prototype for the original brief.",
+    },
+    {
+      id: "rfp-5", name: "Rocket Money — New Year Reset", advertiser: "Rocket Money", status: "not_started",
+      received: "2026-08-01", submitted: null, shows: [], newsletters: [], social: [], deliverable: null, notes: "",
+    },
+    {
+      id: "rfp-6", name: "ZipRecruiter — Hiring Season", advertiser: "ZipRecruiter", status: "rfp_submitted",
+      received: "2026-07-28", submitted: "2026-08-05",
+      shows: ["Julian Dorey Podcast", "The Daily Beast Podcast"], newsletters: ["nl-2"], social: ["sp-2", "sp-4"],
+      deliverable: { filename: "ziprecruiter-hiring-season.pdf" }, notes: "Direct-response — needs promo code tracking.",
+    },
+  ];
+
+  const STATUS_LABELS = {
+    not_started: "Not Started",
+    awaiting_vet_responses: "Awaiting Vet Responses",
+    rfp_submitted: "RFP Submitted",
+    io_received: "IO Received",
+    closed: "Closed",
+  };
+  const STATUS_PILL_VARIANT = {
+    not_started: "neutral",
+    awaiting_vet_responses: "warn",
+    rfp_submitted: "primary",
+    io_received: "success",
+    closed: "muted",
+  };
+
+  const state = { search: "", status: "", openId: null };
+
+  // ---------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  function truncate(s, n) {
+    return s.length > n ? s.slice(0, n - 1) + "…" : s;
+  }
+  function namesFor(ids, options) {
+    return ids.map((id) => options.find((o) => o.id === id)).filter(Boolean).map((o) => o.name);
+  }
+  function statusPill(status) {
+    if (!status) return "";
+    const variant = STATUS_PILL_VARIANT[status] || "neutral";
+    return `<span class="pill pill-${variant}">${esc(STATUS_LABELS[status] || status)}</span>`;
+  }
+  function chipRowSm(names) {
+    if (!names || !names.length) return "";
+    return `<div class="chip-row-sm">${names.map((n) => `<span class="chip chip-sm">${esc(n)}</span>`).join("")}</div>`;
+  }
+  function findRfp(id) {
+    return RFPS.find((r) => r.id === id) || null;
+  }
+
+  // ---------------------------------------------------------------------
+  // List view
+  // ---------------------------------------------------------------------
+  function filteredRfps() {
+    const q = state.search.trim().toLowerCase();
+    return RFPS.filter((r) => {
+      if (state.status && r.status !== state.status) return false;
+      if (!q) return true;
+      return r.name.toLowerCase().includes(q) || (r.advertiser || "").toLowerCase().includes(q);
+    });
+  }
+
+  function renderRow(rfp) {
+    const deliverable = rfp.deliverable
+      ? `<span class="file-chip-sm">&#128206; ${esc(rfp.deliverable.filename)}</span>`
+      : "";
+    const notes = rfp.notes ? `<span class="cell-muted" title="${esc(rfp.notes)}">${esc(truncate(rfp.notes, 42))}</span>` : "";
+    return `<tr class="row-clickable" onclick="showDetail('${rfp.id}')">
+      <td class="tabular">${fmtDate(rfp.received)}</td>
+      <td class="tabular">${fmtDate(rfp.submitted)}</td>
+      <td><span class="cell-strong">${esc(rfp.name)}</span></td>
+      <td>${esc(rfp.advertiser)}</td>
+      <td>${statusPill(rfp.status)}</td>
+      <td>${chipRowSm(rfp.shows)}</td>
+      <td>${chipRowSm(namesFor(rfp.newsletters, NEWSLETTER_OPTIONS))}</td>
+      <td>${chipRowSm(namesFor(rfp.social, SOCIAL_OPTIONS))}</td>
+      <td>${deliverable}</td>
+      <td>${notes}</td>
+    </tr>`;
+  }
+
+  function renderList() {
+    const rows = filteredRfps();
+    const tbody = document.getElementById("rfp-tbody");
+    tbody.innerHTML = rows.length
+      ? rows.map(renderRow).join("")
+      : `<tr><td colspan="10" class="empty-hint" style="text-align:center;padding:2rem 0;">No RFPs found.</td></tr>`;
+    document.getElementById("table-note").textContent = `Showing ${rows.length} of ${RFPS.length}`;
+  }
+
+  function onSearchInput(value) {
+    state.search = value;
+    renderList();
+  }
+  function onFilterChange(value) {
+    state.status = value;
+    renderList();
+  }
+
+  // ---------------------------------------------------------------------
+  // Detail view — editable Submitted Newsletters / Social Profiles mirror
+  // the real app's app-managed pickers; everything else here is read-only,
+  // matching how the synced fields behave in Valt.
+  // ---------------------------------------------------------------------
+  function chipsHtml(rfpId, field, selectedIds, options) {
+    const selected = options.filter((o) => selectedIds.includes(o.id));
+    if (!selected.length) return `<p class="empty-hint">None yet.</p>`;
+    return selected
+      .map(
+        (o) =>
+          `<span class="chip">${esc(o.name)} <span class="chip-x" onclick="removeOption('${rfpId}','${field}','${o.id}')">&times;</span></span>`
+      )
+      .join("");
+  }
+
+  function renderMultiEditor(rfpId, field, selectedIds, options) {
+    const popId = `pop-${field}-${rfpId}`;
+    const items = options
+      .map((o) => {
+        const checked = selectedIds.includes(o.id) ? "checked" : "";
+        return `<label class="col-check-item"><input type="checkbox" data-opt="${o.id}" ${checked} onchange="toggleOption('${rfpId}','${field}','${o.id}')" /> ${esc(o.name)}</label>`;
+      })
+      .join("");
+    return `
+      <div class="chip-row" id="chips-${field}-${rfpId}">${chipsHtml(rfpId, field, selectedIds, options)}</div>
+      <div class="add-wrap">
+        <button type="button" class="add-chip-btn" onclick="togglePopover('${popId}')">+ Add ${field === "newsletters" ? "newsletter" : "social profile"}</button>
+        <div class="col-menu" id="${popId}"><div class="col-filter-body">${items}</div></div>
+      </div>`;
+  }
+
+  function renderDetail(id) {
+    const rfp = findRfp(id);
+    const root = document.getElementById("view-detail");
+    if (!rfp) {
+      root.innerHTML = `<p class="empty-hint">RFP not found.</p>`;
+      return;
+    }
+    root.innerHTML = `
+      <div class="page-head">
+        <div>
+          <div class="detail-title-row">
+            <h1>${esc(rfp.name)}</h1>
+            ${statusPill(rfp.status)}
+          </div>
+          ${rfp.advertiser ? `<p class="detail-sub">${esc(rfp.advertiser)}</p>` : ""}
+        </div>
+        <button type="button" class="btn ghost" onclick="showList()">&larr; Back to RFPs</button>
+      </div>
+
+      <div class="detail-grid">
+        <div class="card">
+          <div class="card-title">Overview</div>
+          <div class="field-grid">
+            <div class="field"><span class="k">Received</span><span class="v tabular">${fmtDate(rfp.received)}</span></div>
+            <div class="field"><span class="k">Submitted</span><span class="v tabular">${fmtDate(rfp.submitted)}</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Submitted Shows</div>
+          ${rfp.shows.length ? `<div class="chip-row">${rfp.shows.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : `<p class="empty-hint">None</p>`}
+        </div>
+
+        <div class="card">
+          <div class="card-title">Deliverable</div>
+          ${rfp.deliverable ? `<a class="file-chip" href="#" onclick="return false;">&#128206; ${esc(rfp.deliverable.filename)}</a>` : `<p class="empty-hint">None</p>`}
+        </div>
+
+        <div class="card">
+          <div class="card-title">Submitted Newsletters</div>
+          ${renderMultiEditor(rfp.id, "newsletters", rfp.newsletters, NEWSLETTER_OPTIONS)}
+        </div>
+
+        <div class="card">
+          <div class="card-title">Submitted Social Profiles</div>
+          ${renderMultiEditor(rfp.id, "social", rfp.social, SOCIAL_OPTIONS)}
+        </div>
+
+        <div class="card">
+          <div class="card-title">Notes</div>
+          ${rfp.notes ? `<p class="notes-text">${esc(rfp.notes)}</p>` : `<p class="empty-hint">No notes yet.</p>`}
+        </div>
+      </div>`;
+  }
+
+  function toggleOption(rfpId, field, optId) {
+    const rfp = findRfp(rfpId);
+    if (!rfp) return;
+    const idx = rfp[field].indexOf(optId);
+    if (idx >= 0) rfp[field].splice(idx, 1);
+    else rfp[field].push(optId);
+    const options = field === "newsletters" ? NEWSLETTER_OPTIONS : SOCIAL_OPTIONS;
+    document.getElementById(`chips-${field}-${rfpId}`).innerHTML = chipsHtml(rfpId, field, rfp[field], options);
+  }
+
+  function removeOption(rfpId, field, optId) {
+    toggleOption(rfpId, field, optId);
+    const cb = document.querySelector(`#pop-${field}-${rfpId} input[data-opt="${optId}"]`);
+    if (cb) cb.checked = false;
+  }
+
+  function togglePopover(id) {
+    document.querySelectorAll(".col-menu.is-open").forEach((el) => {
+      if (el.id !== id) el.classList.remove("is-open");
+    });
+    document.getElementById(id).classList.toggle("is-open");
+  }
+  document.addEventListener("click", (ev) => {
+    if (!ev.target.closest(".add-wrap")) {
+      document.querySelectorAll(".col-menu.is-open").forEach((el) => el.classList.remove("is-open"));
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // View switching + breadcrumb (mirrors Valt: selecting an RFP replaces
+  // the table in place and the breadcrumb expands to include its name).
+  // ---------------------------------------------------------------------
+  function renderCrumb() {
+    const el = document.getElementById("crumb");
+    if (state.openId) {
+      const rfp = findRfp(state.openId);
+      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">/</span><a onclick="showList()">RFPs</a><span class="sep">/</span><span class="crumb-current">${esc(rfp ? rfp.name : "RFP")}</span>`;
+    } else {
+      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">/</span><span class="crumb-current">RFPs</span>`;
+    }
+  }
+
+  function showList() {
+    state.openId = null;
+    document.getElementById("view-list").style.display = "";
+    document.getElementById("view-detail").style.display = "none";
+    renderCrumb();
+    renderList();
+  }
+  function showDetail(id) {
+    state.openId = id;
+    document.getElementById("view-list").style.display = "none";
+    document.getElementById("view-detail").style.display = "";
+    renderCrumb();
+    renderDetail(id);
+  }
+
+  renderCrumb();
+  renderList();
+</script>
