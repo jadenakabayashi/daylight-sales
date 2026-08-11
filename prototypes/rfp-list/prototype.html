@@ -1,63 +1,53 @@
 <title>Sales — RFPs</title>
 <style>
-  /* Design tokens copied verbatim from prototypes/sales-rfp-builder/prototype.html — that file did the real
-     Figma/Storybook fidelity work (see its notes.md v17-v26) confirming this neutral zinc palette; reusing the
-     same tokens here keeps every prototype in this repo visually consistent instead of re-deriving them. */
+  /* Base structure (sidebar/table/popover mechanics) carries over from
+     prototypes/sales-rfp-builder/prototype.html; the token VALUES below were
+     re-matched against a screenshot of the deployed app
+     (valt-daylight-media.vercel.app/sales/proposals) per the user's explicit
+     ask to restyle this page to match it. Hex values are eyeballed from that
+     screenshot, not sampled with a color picker or pulled from Figma/Storybook
+     — flag anything here as wrong if you check it against the real CSS and it
+     doesn't match. See notes.md. */
   :root {
-    --bg: #fafafa;
-    --bg-subtle: #f5f5f5;
+    --bg: #ffffff;
     --sidebar-bg: #fafafa;
     --sidebar-fg: #3f3f46;
-    --card-bg: #fafafa;
-    --fg: #171717;
-    --fg-muted: #737373;
-    --muted-bg: #f5f5f5;
-    --border: #e5e5e5;
-    --primary: #171717;
+    --card-bg: #ffffff;
+    --fg: #0a0a0a;
+    --fg-muted: #6b6b74;
+    --muted-bg: #f2f2f4;
+    --border: #e4e4e7;
+    --primary: #111113;
     --primary-fg: #fafafa;
-    --accent: #f5f5f5;
-    --ring: #171717;
+    --ring: #111113;
     --destructive: #ef4444;
-    --destructive-bg: #fef2f2;
-    --destructive-border: #fecaca;
-    --success: #2a9d90;
-    --success-bg: #ecf7f5;
-    --success-border: #b9e2dc;
-    --warning: #b45309;
-    --warning-bg: #fef6e7;
-    --warning-border: #f3dfb1;
+    --warning: #d97706;
+    --success: #16a34a;
     --radius: .5rem;
-    --radius-sm: 2px;
+    --radius-sm: 3px;
     --radius-md: 6px;
-    --popover-bg: var(--bg);
+    --popover-bg: var(--card-bg);
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
-      --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
-      --primary: #fafafa; --primary-fg: #171717; --accent: #404040; --ring: #fafafa;
-      --destructive: #f87171; --destructive-bg: #2a1416; --destructive-border: #4c1d1d;
-      --success: #2eb88a; --success-bg: #0f2620; --success-border: #1c4a3a;
-      --warning: #f0a63d; --warning-bg: #2c1f0a; --warning-border: #5a3f14;
+      --bg: #0a0a0a; --sidebar-bg: #0a0a0a; --sidebar-fg: #cbd5e1;
+      --card-bg: #141416; --fg: #fafafa; --fg-muted: #9a9aa2; --muted-bg: #1c1c1f; --border: #26262a;
+      --primary: #fafafa; --primary-fg: #111113; --ring: #fafafa;
+      --destructive: #f87171; --warning: #d97706; --success: #16a34a;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
-    --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
-    --primary: #fafafa; --primary-fg: #171717; --accent: #404040; --ring: #fafafa;
-    --destructive: #f87171; --destructive-bg: #2a1416; --destructive-border: #4c1d1d;
-    --success: #2eb88a; --success-bg: #0f2620; --success-border: #1c4a3a;
-    --warning: #f0a63d; --warning-bg: #2c1f0a; --warning-border: #5a3f14;
+    --bg: #0a0a0a; --sidebar-bg: #0a0a0a; --sidebar-fg: #cbd5e1;
+    --card-bg: #141416; --fg: #fafafa; --fg-muted: #9a9aa2; --muted-bg: #1c1c1f; --border: #26262a;
+    --primary: #fafafa; --primary-fg: #111113; --ring: #fafafa;
+    --destructive: #f87171; --warning: #d97706; --success: #16a34a;
   }
   :root[data-theme="light"] {
-    --bg: #fafafa; --bg-subtle: #f5f5f5; --sidebar-bg: #fafafa; --sidebar-fg: #3f3f46;
-    --card-bg: #fafafa; --fg: #171717; --fg-muted: #737373; --muted-bg: #f5f5f5; --border: #e5e5e5;
-    --primary: #171717; --primary-fg: #fafafa; --accent: #f5f5f5; --ring: #171717;
-    --destructive: #ef4444; --destructive-bg: #fef2f2; --destructive-border: #fecaca;
-    --success: #2a9d90; --success-bg: #ecf7f5; --success-border: #b9e2dc;
-    --warning: #b45309; --warning-bg: #fef6e7; --warning-border: #f3dfb1;
+    --bg: #ffffff; --sidebar-bg: #fafafa; --sidebar-fg: #3f3f46;
+    --card-bg: #ffffff; --fg: #0a0a0a; --fg-muted: #6b6b74; --muted-bg: #f2f2f4; --border: #e4e4e7;
+    --primary: #111113; --primary-fg: #fafafa; --ring: #111113;
+    --destructive: #ef4444; --warning: #d97706; --success: #16a34a;
   }
 
   * { box-sizing: border-box; }
@@ -71,15 +61,19 @@
 
   .app { display: flex; min-height: 100vh; }
 
-  /* ---------------- Sidebar (structure/classes copied from sales-rfp-builder) ---------------- */
+  /* ---------------- Sidebar ---------------- */
   .sidebar {
-    width: 220px; flex: 0 0 220px; background: var(--sidebar-bg); color: var(--sidebar-fg);
+    width: 232px; flex: 0 0 232px; background: var(--sidebar-bg); color: var(--sidebar-fg);
     border-right: 1px solid var(--border); display: flex; flex-direction: column;
     padding: 1.1rem 0.85rem; position: sticky; top: 0; height: 100vh;
   }
-  .brand { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem 1.1rem; font-weight: 700; font-size: 1.05rem; color: var(--fg); }
-  .brand-mark { width: 22px; height: 22px; border-radius: 6px; background: radial-gradient(circle at 30% 30%, var(--ring), var(--primary)); flex: none; }
+  .brand { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem 1.2rem; font-weight: 700; font-size: 1.05rem; color: var(--fg); }
+  .brand-mark {
+    width: 22px; height: 22px; border-radius: 6px; flex: none;
+    background: conic-gradient(from 90deg, #f59e0b, #ef4444, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+  }
   .nav-group { margin-bottom: 0.15rem; }
+  .nav-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-muted); padding: 0.9rem 0.5rem 0.35rem; font-weight: 600; }
   .nav-item {
     display: flex; align-items: center; gap: 0.55rem; padding: 0.4rem 0.5rem; border-radius: calc(var(--radius) - 0.15rem);
     font-size: 0.85rem; color: var(--sidebar-fg); cursor: default; white-space: nowrap;
@@ -90,94 +84,123 @@
   .nav-item.is-clickable:hover { background: var(--muted-bg); }
   .nav-sub { padding-left: 1.6rem; }
   .nav-sub .nav-item { font-size: 0.82rem; padding: 0.32rem 0.5rem; }
+  /* Real Valt highlights the open sub-route with an outlined box, not a filled
+     row like the parent items above — matches the screenshot's "RFPs" state. */
+  .nav-sub .nav-item.is-active { background: transparent; border: 1px solid var(--border); color: var(--fg); font-weight: 600; }
   .sidebar-spacer { flex: 1; }
   .sidebar-user { display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.4rem 0.2rem; border-top: 1px solid var(--border); margin-top: 0.6rem; padding-top: 0.8rem; }
   .avatar { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--ring), var(--primary)); flex: none; }
   .sidebar-user .who { line-height: 1.25; }
   .sidebar-user .who b { display: block; font-size: 0.82rem; color: var(--fg); }
   .sidebar-user .who span { font-size: 0.72rem; color: var(--fg-muted); }
+  .sidebar-user .more { margin-left: auto; color: var(--fg-muted); font-size: 1rem; }
 
   /* ---------------- Main / page shell ---------------- */
-  .main { flex: 1; min-width: 0; padding: 1.3rem 1.8rem 2.2rem; }
+  .main { flex: 1; min-width: 0; padding: 1.1rem 1.8rem 2.2rem; }
   .screen { display: none; }
   .screen.is-active { display: block; }
 
-  .crumb { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.5rem; }
-  .crumb a { color: var(--primary); text-decoration: none; cursor: pointer; }
-  .crumb a:hover { text-decoration: underline; }
-  .crumb .sep { margin: 0 0.3rem; opacity: 0.6; }
-  .crumb .crumb-current { color: var(--fg-muted); }
-
-  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
-  .page-head h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; }
-
-  .hint { font-size: 0.78rem; color: var(--fg-muted); margin: -0.3rem 0 0.9rem; }
+  .page-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.6rem; }
+  .crumb { font-size: 0.78rem; color: var(--fg-muted); display: flex; align-items: center; }
+  .crumb a { color: var(--fg-muted); text-decoration: none; cursor: pointer; }
+  .crumb a:hover { color: var(--fg); }
+  .crumb .sep { margin: 0 0.35rem; opacity: 0.6; }
+  .crumb .crumb-current { color: var(--fg); font-weight: 500; }
 
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px;
     border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg); color: var(--fg);
-    padding: 0 16px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; line-height: 1.2;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    padding: 0 14px; font-size: 13.5px; font-weight: 500; cursor: pointer; white-space: nowrap; line-height: 1.2;
   }
   .btn:hover { background: var(--muted-bg); }
-  .btn.ghost { border-color: transparent; background: transparent; box-shadow: none; }
+  .btn.ghost { border-color: transparent; background: transparent; }
   .btn.ghost:hover { background: var(--muted-bg); }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
 
-  /* ---------------- Toolbar: search + status filter ---------------- */
-  .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .hint { font-size: 0.76rem; color: var(--fg-muted); margin: 0.4rem 0 0.9rem; }
+
+  /* ---------------- Tab bar + toolbar share one row/border, like PageNavSection ---------------- */
+  .nav-toolbar-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; margin-bottom: 1rem;
+  }
+  .tabbar { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+  .tab { font-size: 0.85rem; color: var(--fg-muted); cursor: default; padding: 0.2rem 0; white-space: nowrap; }
+  .tab.is-active { color: var(--fg); font-weight: 600; }
+
+  .toolbar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
   .search {
-    flex: 1; min-width: 200px; max-width: 320px; display: flex; align-items: center; gap: 0.4rem;
-    border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem;
+    flex: none; width: 230px; display: flex; align-items: center; gap: 0.4rem;
+    border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 0.6rem; height: 34px;
     background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem;
   }
   .icon-search { flex: none; }
-  .search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 0.82rem; }
-  .tb-select {
-    height: 36px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 0.6rem;
-    background: var(--bg); color: var(--fg); font-size: 0.83rem; cursor: pointer;
+  .search input { border: 0; outline: 0; background: transparent; flex: 1; color: var(--fg); font-size: 0.82rem; height: 100%; }
+
+  .dd { position: relative; }
+  .filter-btn {
+    display: inline-flex; align-items: center; gap: 6px; height: 34px; border-radius: var(--radius-md);
+    border: 1px solid var(--border); background: var(--bg); color: var(--fg-muted); font-size: 0.8rem;
+    padding: 0 0.6rem; cursor: pointer; white-space: nowrap;
   }
+  .filter-btn:hover { background: var(--muted-bg); }
+  .filter-btn.has-value { border-color: var(--fg-muted); color: var(--fg); }
+  .filter-btn .chev { opacity: 0.7; }
 
   /* ---------------- Table ---------------- */
   .table-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
   .table-wrap { overflow: auto; }
-  table { width: 100%; background: var(--bg); border-collapse: collapse; font-size: 13.5px; }
+  table { width: 100%; background: var(--bg); border-collapse: collapse; font-size: 13.5px; table-layout: auto; }
   thead th {
-    position: sticky; top: 0; height: 40px; background: var(--bg); text-align: left; font-weight: 500;
-    color: var(--fg-muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 13px; padding: 0 10px;
+    position: sticky; top: 0; height: 38px; background: var(--bg); text-align: left; font-weight: 500;
+    color: var(--fg-muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 13px; padding: 0 12px;
   }
-  tbody td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  thead th .sort-ic { margin-left: 0.25rem; opacity: 0.55; font-size: 0.8em; }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr.row-clickable { cursor: pointer; }
   tbody tr.row-clickable:hover td { background: var(--muted-bg); }
+  td.col-shows, td.col-newsletters, td.col-social { min-width: 200px; }
   .cell-strong { font-weight: 500; }
   .cell-muted { color: var(--fg-muted); }
-  .table-note { font-size: 0.76rem; color: var(--fg-muted); padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); }
+  .table-note { font-size: 0.76rem; color: var(--fg-muted); padding: 0.55rem 0.85rem; border-top: 1px solid var(--border); }
 
-  /* ---------------- Status pill ---------------- */
-  .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.18rem 0.6rem; font-size: 0.74rem; font-weight: 500; white-space: nowrap; }
-  .pill-neutral { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
-  .pill-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-  .pill-primary { background: var(--muted-bg); color: var(--primary); border: 1px solid var(--primary); }
-  .pill-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
-  .pill-muted { background: var(--muted-bg); color: var(--fg-muted); border: 1px solid transparent; }
+  /* ---------------- Status pill — same variant names/roles as the real
+     proposalStatusVariant mapping (outline/warning/default/success/secondary):
+     outline = not started, warning/success are solid semantic colors
+     (distinct from the neutral accent), default/secondary ride the
+     primary/muted tokens the same way the real shadcn Badge does. ---------------- */
+  .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+  .pill-outline { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); font-weight: 500; }
+  .pill-warning { background: var(--warning); color: #fff; }
+  .pill-default { background: var(--primary); color: var(--primary-fg); }
+  .pill-success { background: var(--success); color: #fff; }
+  .pill-secondary { background: var(--muted-bg); color: var(--fg-muted); font-weight: 500; }
 
   /* ---------------- Chips (badges + removable tags share the same look) ---------------- */
   .chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-  .chip-row-sm { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-  .chip { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--muted-bg); border-radius: 999px; padding: 0.25rem 0.65rem; font-size: 0.76rem; color: var(--fg); }
-  .chip-sm { padding: 0.12rem 0.55rem; font-size: 0.7rem; }
+  .chip-row-sm { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .chip { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--muted-bg); border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.65rem; font-size: 0.76rem; color: var(--fg); }
+  .chip-sm { padding: 0.14rem 0.55rem; font-size: 0.72rem; }
   .chip .chip-x { opacity: 0.55; cursor: pointer; font-size: 0.85em; }
   .chip .chip-x:hover { opacity: 1; }
-  .file-chip, .file-chip-sm {
+  .file-thumbs { display: flex; gap: 0.3rem; }
+  .file-thumb {
+    width: 28px; height: 28px; border-radius: 6px; background: #fff; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .file-thumb svg { color: #111; }
+  .file-chip {
     display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: var(--radius-md);
     padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none; color: var(--fg); background: var(--card-bg);
   }
   .file-chip:hover { background: var(--muted-bg); }
-  .file-chip-sm { padding: 0.15rem 0.5rem; font-size: 0.74rem; }
 
   /* ---------------- Detail view ---------------- */
   .detail-title-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-  .detail-title-row h1 { font-size: 1.35rem; }
+  .detail-title-row h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; }
   .detail-sub { margin: 0.2rem 0 0; color: var(--fg-muted); font-size: 0.85rem; }
   .detail-grid { display: flex; flex-direction: column; gap: 1rem; max-width: 720px; }
   .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-bg); padding: 0.9rem 1.1rem 1.1rem; }
@@ -189,21 +212,20 @@
   .notes-text { white-space: pre-line; font-size: 0.85rem; }
   .empty-hint { color: var(--fg-muted); font-size: 0.82rem; margin: 0; }
 
-  /* ---------------- Add-chip popover (checklist, reused for newsletters/social) ---------------- */
-  .add-wrap { position: relative; display: inline-block; margin-top: 0.5rem; }
+  /* ---------------- Popover checklist — shared by the toolbar's filter
+     dropdowns and the detail view's "+ Add newsletter/social profile" pickers ---------------- */
   .add-chip-btn {
     display: block; text-align: left; border: 1px dashed var(--border); border-radius: var(--radius-md);
-    padding: 0.35rem 0.65rem; background: transparent; color: var(--primary); font-size: 0.78rem; cursor: pointer;
+    padding: 0.35rem 0.65rem; background: transparent; color: var(--fg); font-size: 0.78rem; cursor: pointer; margin-top: 0.5rem;
   }
   .add-chip-btn:hover { background: var(--muted-bg); }
   .col-menu {
     display: none; position: absolute; top: 100%; left: 0; margin-top: 0.3rem; z-index: 30; min-width: 220px;
     max-width: 280px; background: var(--popover-bg); border: 1px solid var(--border); border-radius: var(--radius-md);
-    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.06), 0 4px 6px -1px rgba(0,0,0,0.1); padding: 4px;
-    font-size: 14px; color: var(--fg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16); padding: 4px; font-size: 14px; color: var(--fg);
   }
   .col-menu.is-open { display: block; }
-  .col-filter-body { padding: 4px; max-height: 220px; overflow-y: auto; }
+  .col-filter-body { padding: 4px; max-height: 240px; overflow-y: auto; }
   .col-check-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13.5px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; }
   .col-check-item:hover { background: var(--muted-bg); }
   .col-check-item input[type="checkbox"] {
@@ -228,53 +250,70 @@
       <div class="nav-item"><span class="ic">&#9835;</span> Shows</div>
       <div class="nav-item"><span class="ic">&#10003;</span> Brand Vetting</div>
       <div class="nav-item"><span class="ic">&#9636;</span> Reports</div>
+      <div class="nav-item"><span class="ic">&#9633;</span> Calendar</div>
     </div>
 
-    <div class="nav-label" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted);padding:.9rem .5rem .35rem;font-weight:600;">Internal</div>
+    <div class="nav-label">Internal</div>
     <div class="nav-group">
-      <div class="nav-item"><span class="ic">&#9707;</span> Inventory</div>
       <div class="nav-item is-active"><span class="ic">&#9670;</span> Sales</div>
       <div class="nav-sub">
-        <div class="nav-item is-clickable is-active" onclick="showList()">RFPs</div>
+        <div class="nav-item">Overview</div>
+        <div class="nav-item">Rate Card</div>
+        <div class="nav-item">Fill Rates</div>
+        <div class="nav-item">Ad Plan</div>
         <div class="nav-item">Orders</div>
+        <div class="nav-item is-clickable is-active" onclick="showList()">RFPs</div>
         <div class="nav-item">Agencies</div>
+        <div class="nav-item">One Sheets</div>
+        <div class="nav-item">Kits</div>
       </div>
-      <div class="nav-item">Operations</div>
-      <div class="nav-item">Partnerships</div>
-      <div class="nav-item">Financial</div>
-      <div class="nav-item">Roster</div>
+      <div class="nav-item"><span class="ic">&#9881;</span> Operations</div>
+      <div class="nav-item"><span class="ic">&#9670;</span> Partnerships</div>
+      <div class="nav-item"><span class="ic">&#9878;</span> Legal</div>
+      <div class="nav-item"><span class="ic">$</span> Financial</div>
+      <div class="nav-item"><span class="ic">&#9638;</span> Roster</div>
+      <div class="nav-item"><span class="ic">&#9678;</span> Users</div>
     </div>
 
     <div class="sidebar-spacer"></div>
     <div class="sidebar-user">
       <span class="avatar"></span>
       <div class="who"><b>Jade Nakabayashi</b><span>Daylight Media</span></div>
+      <span class="more">&#8942;</span>
     </div>
   </aside>
 
   <!-- ================= MAIN ================= -->
   <main class="main">
     <section id="screen-rfps" class="screen is-active">
-      <div class="crumb" id="crumb"></div>
 
       <!-- ---------- LIST VIEW ---------- -->
       <div id="view-list">
-        <div class="page-head"><h1>RFPs</h1></div>
+        <div class="page-top">
+          <div class="crumb" id="crumb"></div>
+          <button type="button" class="btn primary" title="Prototype only — not wired up">New RFP</button>
+        </div>
         <p class="hint">Prototype data — illustrative RFP records for this proto, not connected to Airtable or Valt. See notes.md for what's real vs. fabricated.</p>
 
-        <div class="toolbar">
-          <div class="search">
-            <svg class="icon-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-            <input id="search-input" placeholder="Search RFPs…" oninput="onSearchInput(this.value)" />
+        <div class="nav-toolbar-row">
+          <div class="tabbar">
+            <div class="tab">Overview</div>
+            <div class="tab">Rate Card</div>
+            <div class="tab">Fill Rates</div>
+            <div class="tab">Ad Plan</div>
+            <div class="tab">Orders</div>
+            <div class="tab is-active">RFPs</div>
+            <div class="tab">Agencies</div>
+            <div class="tab">One Sheets</div>
+            <div class="tab">Kits</div>
           </div>
-          <select class="tb-select" id="status-filter" onchange="onFilterChange(this.value)">
-            <option value="">All statuses</option>
-            <option value="not_started">Not Started</option>
-            <option value="awaiting_vet_responses">Awaiting Vet Responses</option>
-            <option value="rfp_submitted">RFP Submitted</option>
-            <option value="io_received">IO Received</option>
-            <option value="closed">Closed</option>
-          </select>
+          <div class="toolbar">
+            <div class="search">
+              <svg class="icon-search" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input id="search-input" placeholder="Search RFPs…" oninput="onSearchInput(this.value)" />
+            </div>
+            <div id="toolbar-filters" style="display:flex;align-items:center;gap:0.5rem;"></div>
+          </div>
         </div>
 
         <div class="table-card">
@@ -282,11 +321,11 @@
             <table>
               <thead>
                 <tr>
-                  <th>Received</th>
-                  <th>Submitted</th>
-                  <th>Name</th>
-                  <th>Advertiser</th>
-                  <th>Status</th>
+                  <th>Received Date<span class="sort-ic">&#8691;</span></th>
+                  <th>Submitted Date<span class="sort-ic">&#8691;</span></th>
+                  <th>Name<span class="sort-ic">&#8691;</span></th>
+                  <th>Advertiser<span class="sort-ic">&#8691;</span></th>
+                  <th>Status<span class="sort-ic">&#8691;</span></th>
                   <th>Shows</th>
                   <th>Newsletters</th>
                   <th>Social Profiles</th>
@@ -309,11 +348,14 @@
 
 <script>
   // ---------------------------------------------------------------------
-  // Mock data. Show names are the real Daylight roster names already used
-  // in prototypes/sales-rfp-builder (grounded in refs/Foundation's actual
-  // roster file). Everything else here — the RFP records themselves,
-  // advertisers, newsletters, and social handles — is fabricated for this
-  // proto: there's no real "list of past RFPs" source yet. See notes.md.
+  // Mock data. Rows 1-16 mirror the real advertiser/RFP names, statuses,
+  // dates, and show chips visible in a screenshot of the deployed app
+  // (valt-daylight-media.vercel.app/sales/proposals) shared for this restyle
+  // pass — including "Small Town Dick Prsents: Firehouse Files", copied
+  // verbatim typo and all. Rows 17-18 (Babbel, ZipRecruiter) are this proto's
+  // own earlier fabricated rows, kept to exercise Newsletters/Social
+  // Profiles/Notes with real-looking data since none of the screenshot's
+  // visible rows happened to have any. See notes.md for the full breakdown.
   // ---------------------------------------------------------------------
   const NEWSLETTER_OPTIONS = [
     { id: "nl-1", name: "The Morning Brief" },
@@ -328,43 +370,24 @@
     { id: "sp-4", name: "@dailybeastpod" },
   ];
   const RFPS = [
-    {
-      id: "rfp-1", name: "Peloton — Fall Push", advertiser: "Peloton", status: "rfp_submitted",
-      received: "2026-07-02", submitted: "2026-07-10",
-      shows: ["The Shawn Ryan Show", "Crime, Conspiracy, Cults, Murder"],
-      newsletters: ["nl-1"], social: ["sp-1", "sp-2"],
-      deliverable: { filename: "peloton-fall-push-onesheet.pdf" },
-      notes: "Agency wants mid-roll only, no host-read on News/Politics shows.",
-    },
-    {
-      id: "rfp-2", name: "AG1 — Evergreen Renewal", advertiser: "Athletic Greens (AG1)", status: "io_received",
-      received: "2026-06-18", submitted: "2026-06-25",
-      shows: ["The Danny Jones Podcast"], newsletters: ["nl-2"], social: [],
-      deliverable: { filename: "ag1-renewal-io.pdf" }, notes: "",
-    },
-    {
-      id: "rfp-3", name: "BetterHelp — Q3 Awareness", advertiser: "BetterHelp", status: "awaiting_vet_responses",
-      received: "2026-07-20", submitted: null,
-      shows: ["Woman Evolve", "Inside of You with Michael Rosenbaum"], newsletters: [], social: ["sp-3"],
-      deliverable: null, notes: "Waiting on Ad Ops to confirm host availability for both shows.",
-    },
-    {
-      id: "rfp-4", name: "Babbel — Language Learning Sprint", advertiser: "Babbel", status: "closed",
-      received: "2026-05-02", submitted: "2026-05-14",
-      shows: ["The Shawn Ryan Show"], newsletters: ["nl-1", "nl-3"], social: ["sp-1"],
-      deliverable: { filename: "babbel-sprint-brief.pdf" },
-      notes: "Campaign wrapped early — see the Vetting Pass 1 prototype for the original brief.",
-    },
-    {
-      id: "rfp-5", name: "Rocket Money — New Year Reset", advertiser: "Rocket Money", status: "not_started",
-      received: "2026-08-01", submitted: null, shows: [], newsletters: [], social: [], deliverable: null, notes: "",
-    },
-    {
-      id: "rfp-6", name: "ZipRecruiter — Hiring Season", advertiser: "ZipRecruiter", status: "rfp_submitted",
-      received: "2026-07-28", submitted: "2026-08-05",
-      shows: ["Julian Dorey Podcast", "The Daily Beast Podcast"], newsletters: ["nl-2"], social: ["sp-2", "sp-4"],
-      deliverable: { filename: "ziprecruiter-hiring-season.pdf" }, notes: "Direct-response — needs promo code tracking.",
-    },
+    { id: "rfp-1", name: "Arca Wealth Management - 2026-08-06", advertiser: "Arca Wealth Management", status: "awaiting_vet_responses", received: "2026-08-05", submitted: "2026-08-09", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-2", name: "Bonobos - 2026-08-04", advertiser: "Bonobos", status: "awaiting_vet_responses", received: "2026-08-03", submitted: "2026-08-05", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-3", name: "PrizePicks - 2026-08-04", advertiser: "PrizePicks", status: "rfp_submitted", received: "2026-08-03", submitted: null, shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-4", name: "Hostinger - 2026-08-04", advertiser: "Hostinger", status: "awaiting_vet_responses", received: "2026-08-03", submitted: "2026-08-05", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-5", name: "Primal Queen - 2026-08-04", advertiser: "Primal Queen", status: "awaiting_vet_responses", received: "2026-08-03", submitted: "2026-08-05", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-6", name: "Nuuly - 2026-08-03", advertiser: "Nuuly", status: "rfp_submitted", received: "2026-08-02", submitted: "2026-08-04", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-7", name: "Talkiatry - 2026-08-03", advertiser: "Talkiatry", status: "awaiting_vet_responses", received: "2026-08-02", submitted: "2026-08-06", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-8", name: "Groupon - 2026-08-03", advertiser: "Groupon", status: "rfp_submitted", received: "2026-08-02", submitted: "2026-08-04", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-9", name: "Dipsea - 2026-08-02", advertiser: "Dipsea", status: "rfp_submitted", received: "2026-08-01", submitted: "2026-08-03", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-10", name: "AG1 - 2026-07-31", advertiser: "AG1", status: "rfp_submitted", received: "2026-07-30", submitted: "2026-08-02", shows: ["Talk Ville"], newsletters: [], social: [], deliverables: ["ag1-onesheet.pdf"], notes: "" },
+    { id: "rfp-11", name: "Instant Hydration - 2026-07-31", advertiser: "Instant Hydration", status: "rfp_submitted", received: "2026-07-30", submitted: "2026-08-02", shows: ["Club Random with Bill Maher", "Fear&", "David Alvarez"], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-12", name: "Pepper - 2026-07-31", advertiser: "Pepper", status: "closed", received: "2026-07-30", submitted: "2026-08-02", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-13", name: "NPR - The NPR Politics Podcast - 2026-07-28", advertiser: "NPR - The NPR Politics Podcast", status: "rfp_submitted", received: "2026-07-27", submitted: "2026-07-29", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-14", name: "Uncommon Goods - 2026-07-27", advertiser: "Uncommon Goods", status: "closed", received: "2026-07-26", submitted: "2026-07-28", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-15", name: "Ultra Pouches - 2026-07-23", advertiser: "Ultra Pouches", status: "rfp_submitted", received: "2026-07-22", submitted: "2026-07-26", shows: [], newsletters: [], social: [], deliverables: [], notes: "" },
+    { id: "rfp-16", name: "Square - 2026-07-23", advertiser: "Square", status: "rfp_submitted", received: "2026-07-22", submitted: "2026-07-26", shows: ["Small Town Dicks Presents: Golden State Killer", "Small Town Dicks", "Small Town Dick Prsents: Firehouse Files", "The Basement", "David Alvarez", "Poppies Studios"], newsletters: [], social: [], deliverables: ["square-onesheet.pdf", "square-media-kit.pdf"], notes: "" },
+    { id: "rfp-17", name: "Babbel — Language Learning Sprint", advertiser: "Babbel", status: "closed", received: "2026-05-02", submitted: "2026-05-14", shows: ["The Shawn Ryan Show"], newsletters: ["nl-1", "nl-3"], social: ["sp-1"], deliverables: ["babbel-sprint-brief.pdf"], notes: "Campaign wrapped early — see the Vetting Pass 1 prototype for the original brief." },
+    { id: "rfp-18", name: "ZipRecruiter — Hiring Season", advertiser: "ZipRecruiter", status: "rfp_submitted", received: "2026-07-28", submitted: "2026-08-05", shows: ["Julian Dorey Podcast", "The Daily Beast Podcast"], newsletters: ["nl-2"], social: ["sp-2", "sp-4"], deliverables: ["ziprecruiter-hiring-season.pdf"], notes: "Direct-response — needs promo code tracking." },
   ];
 
   const STATUS_LABELS = {
@@ -374,21 +397,28 @@
     io_received: "IO Received",
     closed: "Closed",
   };
+  // Same variant names as the real proposalStatusVariant() mapping in
+  // apps/valt/src/lib/proposal-status.ts (outline/warning/default/success/secondary).
   const STATUS_PILL_VARIANT = {
-    not_started: "neutral",
-    awaiting_vet_responses: "warn",
-    rfp_submitted: "primary",
+    not_started: "outline",
+    awaiting_vet_responses: "warning",
+    rfp_submitted: "default",
     io_received: "success",
-    closed: "muted",
+    closed: "secondary",
   };
+  const STATUS_OPTIONS = Object.keys(STATUS_LABELS).map((value) => ({ value, label: STATUS_LABELS[value] }));
 
-  const state = { search: "", status: "", openId: null };
+  const filters = { search: "", status: "", advertiser: "", shows: [], newsletters: [], social: [] };
+  const state = { openId: null };
 
   // ---------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------
   function esc(s) {
     return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function escAttr(s) {
+    return esc(s).replace(/`/g, "&#96;");
   }
   function fmtDate(iso) {
     if (!iso) return "—";
@@ -403,44 +433,160 @@
   }
   function statusPill(status) {
     if (!status) return "";
-    const variant = STATUS_PILL_VARIANT[status] || "neutral";
+    const variant = STATUS_PILL_VARIANT[status] || "outline";
     return `<span class="pill pill-${variant}">${esc(STATUS_LABELS[status] || status)}</span>`;
   }
   function chipRowSm(names) {
     if (!names || !names.length) return "";
     return `<div class="chip-row-sm">${names.map((n) => `<span class="chip chip-sm">${esc(n)}</span>`).join("")}</div>`;
   }
+  function fileThumbs(filenames) {
+    if (!filenames || !filenames.length) return "";
+    const icon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>`;
+    return `<div class="file-thumbs">${filenames.map((f) => `<span class="file-thumb" title="${escAttr(f)}">${icon}</span>`).join("")}</div>`;
+  }
+  function chevron() {
+    return `<svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>`;
+  }
   function findRfp(id) {
     return RFPS.find((r) => r.id === id) || null;
+  }
+  function distinctAdvertisers() {
+    return [...new Set(RFPS.map((r) => r.advertiser).filter(Boolean))].sort();
+  }
+  function distinctShows() {
+    return [...new Set(RFPS.flatMap((r) => r.shows))].sort();
+  }
+  function closeAllPopovers() {
+    document.querySelectorAll(".col-menu.is-open").forEach((el) => el.classList.remove("is-open"));
+  }
+  function togglePopover(id) {
+    const willOpen = !document.getElementById(id).classList.contains("is-open");
+    closeAllPopovers();
+    if (willOpen) document.getElementById(id).classList.add("is-open");
+  }
+  document.addEventListener("click", (ev) => {
+    if (!ev.target.closest(".dd") && !ev.target.closest(".add-chip-btn")) closeAllPopovers();
+  });
+
+  // ---------------------------------------------------------------------
+  // Toolbar filter dropdowns (Status/Advertiser = single-select,
+  // Shows/Newsletters/Social Profiles = multi-select) — all share the same
+  // .col-menu checklist popover the detail view's editors use.
+  // ---------------------------------------------------------------------
+  function filterButtonLabel(key, label, options) {
+    if (key === "status" || key === "advertiser") {
+      const v = filters[key];
+      if (!v) return label;
+      const opt = options.find((o) => o.value === v);
+      return opt ? opt.label : v;
+    }
+    const selected = filters[key];
+    if (!selected.length) return label;
+    if (selected.length === 1) {
+      const opt = options.find((o) => o.value === selected[0]);
+      return opt ? opt.label : selected[0];
+    }
+    return `${label} (${selected.length})`;
+  }
+
+  function renderSingleFilter(key, label, options) {
+    const id = `dd-${key}`;
+    const current = filters[key];
+    const allItem = `<div class="col-check-item" style="font-weight:${!current ? 600 : 400}" onclick="setSingleFilter('${key}','')">All ${esc(label)}</div>`;
+    const items = options
+      .map((o) => `<div class="col-check-item" style="font-weight:${current === o.value ? 600 : 400}" onclick="setSingleFilter('${key}','${escAttr(o.value)}')">${esc(o.label)}</div>`)
+      .join("");
+    return `<div class="dd">
+      <button type="button" id="filter-btn-${key}" class="filter-btn${current ? " has-value" : ""}" onclick="togglePopover('${id}')">${esc(filterButtonLabel(key, label, options))} ${chevron()}</button>
+      <div class="col-menu" id="${id}"><div class="col-filter-body">${allItem}${items}</div></div>
+    </div>`;
+  }
+
+  function renderMultiFilter(key, label, options) {
+    const id = `dd-${key}`;
+    const selected = filters[key];
+    const items = options
+      .map((o) => {
+        const checked = selected.includes(o.value) ? "checked" : "";
+        return `<label class="col-check-item"><input type="checkbox" ${checked} onchange="toggleMultiFilter('${key}','${escAttr(o.value)}')" /> ${esc(o.label)}</label>`;
+      })
+      .join("");
+    return `<div class="dd">
+      <button type="button" id="filter-btn-${key}" class="filter-btn${selected.length ? " has-value" : ""}" onclick="togglePopover('${id}')">${esc(filterButtonLabel(key, label, options))} ${chevron()}</button>
+      <div class="col-menu" id="${id}"><div class="col-filter-body">${items || '<p class="empty-hint" style="padding:6px 8px;">No options.</p>'}</div></div>
+    </div>`;
+  }
+
+  function renderToolbarFilters() {
+    const advertiserOptions = distinctAdvertisers().map((a) => ({ value: a, label: a }));
+    const showOptions = distinctShows().map((s) => ({ value: s, label: s }));
+    const newsletterOptions = NEWSLETTER_OPTIONS.map((o) => ({ value: o.id, label: o.name }));
+    const socialOptions = SOCIAL_OPTIONS.map((o) => ({ value: o.id, label: o.name }));
+    document.getElementById("toolbar-filters").innerHTML =
+      renderSingleFilter("status", "Status", STATUS_OPTIONS) +
+      renderSingleFilter("advertiser", "Advertiser", advertiserOptions) +
+      renderMultiFilter("shows", "Shows", showOptions) +
+      renderMultiFilter("newsletters", "Newsletters", newsletterOptions) +
+      renderMultiFilter("social", "Social Profiles", socialOptions);
+  }
+
+  function setSingleFilter(key, value) {
+    filters[key] = value;
+    closeAllPopovers();
+    renderToolbarFilters();
+    renderList();
+  }
+  function toggleMultiFilter(key, value) {
+    const arr = filters[key];
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1);
+    else arr.push(value);
+    const btn = document.getElementById(`filter-btn-${key}`);
+    const labelByKey = { shows: "Shows", newsletters: "Newsletters", social: "Social Profiles" };
+    const optionsByKey = {
+      shows: distinctShows().map((s) => ({ value: s, label: s })),
+      newsletters: NEWSLETTER_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
+      social: SOCIAL_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
+    };
+    btn.classList.toggle("has-value", arr.length > 0);
+    btn.innerHTML = `${esc(filterButtonLabel(key, labelByKey[key], optionsByKey[key]))} ${chevron()}`;
+    renderList();
+  }
+
+  function onSearchInput(value) {
+    filters.search = value;
+    renderList();
   }
 
   // ---------------------------------------------------------------------
   // List view
   // ---------------------------------------------------------------------
   function filteredRfps() {
-    const q = state.search.trim().toLowerCase();
+    const q = filters.search.trim().toLowerCase();
     return RFPS.filter((r) => {
-      if (state.status && r.status !== state.status) return false;
-      if (!q) return true;
-      return r.name.toLowerCase().includes(q) || (r.advertiser || "").toLowerCase().includes(q);
+      if (filters.status && r.status !== filters.status) return false;
+      if (filters.advertiser && r.advertiser !== filters.advertiser) return false;
+      if (filters.shows.length && !r.shows.some((s) => filters.shows.includes(s))) return false;
+      if (filters.newsletters.length && !r.newsletters.some((id) => filters.newsletters.includes(id))) return false;
+      if (filters.social.length && !r.social.some((id) => filters.social.includes(id))) return false;
+      if (q && !(r.name.toLowerCase().includes(q) || (r.advertiser || "").toLowerCase().includes(q))) return false;
+      return true;
     });
   }
 
   function renderRow(rfp) {
-    const deliverable = rfp.deliverable
-      ? `<span class="file-chip-sm">&#128206; ${esc(rfp.deliverable.filename)}</span>`
-      : "";
-    const notes = rfp.notes ? `<span class="cell-muted" title="${esc(rfp.notes)}">${esc(truncate(rfp.notes, 42))}</span>` : "";
+    const notes = rfp.notes ? `<span class="cell-muted" title="${escAttr(rfp.notes)}">${esc(truncate(rfp.notes, 42))}</span>` : "";
     return `<tr class="row-clickable" onclick="showDetail('${rfp.id}')">
       <td class="tabular">${fmtDate(rfp.received)}</td>
       <td class="tabular">${fmtDate(rfp.submitted)}</td>
       <td><span class="cell-strong">${esc(rfp.name)}</span></td>
       <td>${esc(rfp.advertiser)}</td>
       <td>${statusPill(rfp.status)}</td>
-      <td>${chipRowSm(rfp.shows)}</td>
-      <td>${chipRowSm(namesFor(rfp.newsletters, NEWSLETTER_OPTIONS))}</td>
-      <td>${chipRowSm(namesFor(rfp.social, SOCIAL_OPTIONS))}</td>
-      <td>${deliverable}</td>
+      <td class="col-shows">${chipRowSm(rfp.shows)}</td>
+      <td class="col-newsletters">${chipRowSm(namesFor(rfp.newsletters, NEWSLETTER_OPTIONS))}</td>
+      <td class="col-social">${chipRowSm(namesFor(rfp.social, SOCIAL_OPTIONS))}</td>
+      <td>${fileThumbs(rfp.deliverables)}</td>
       <td>${notes}</td>
     </tr>`;
   }
@@ -452,15 +598,6 @@
       ? rows.map(renderRow).join("")
       : `<tr><td colspan="10" class="empty-hint" style="text-align:center;padding:2rem 0;">No RFPs found.</td></tr>`;
     document.getElementById("table-note").textContent = `Showing ${rows.length} of ${RFPS.length}`;
-  }
-
-  function onSearchInput(value) {
-    state.search = value;
-    renderList();
-  }
-  function onFilterChange(value) {
-    state.status = value;
-    renderList();
   }
 
   // ---------------------------------------------------------------------
@@ -489,7 +626,7 @@
       .join("");
     return `
       <div class="chip-row" id="chips-${field}-${rfpId}">${chipsHtml(rfpId, field, selectedIds, options)}</div>
-      <div class="add-wrap">
+      <div class="dd">
         <button type="button" class="add-chip-btn" onclick="togglePopover('${popId}')">+ Add ${field === "newsletters" ? "newsletter" : "social profile"}</button>
         <div class="col-menu" id="${popId}"><div class="col-filter-body">${items}</div></div>
       </div>`;
@@ -503,6 +640,9 @@
       return;
     }
     root.innerHTML = `
+      <div class="page-top">
+        <div class="crumb" id="crumb-detail"></div>
+      </div>
       <div class="page-head">
         <div>
           <div class="detail-title-row">
@@ -530,7 +670,7 @@
 
         <div class="card">
           <div class="card-title">Deliverable</div>
-          ${rfp.deliverable ? `<a class="file-chip" href="#" onclick="return false;">&#128206; ${esc(rfp.deliverable.filename)}</a>` : `<p class="empty-hint">None</p>`}
+          ${rfp.deliverables.length ? `<div class="chip-row">${rfp.deliverables.map((f) => `<a class="file-chip" href="#" onclick="return false;">&#128206; ${esc(f)}</a>`).join("")}</div>` : `<p class="empty-hint">None</p>`}
         </div>
 
         <div class="card">
@@ -548,6 +688,7 @@
           ${rfp.notes ? `<p class="notes-text">${esc(rfp.notes)}</p>` : `<p class="empty-hint">No notes yet.</p>`}
         </div>
       </div>`;
+    renderCrumbInto("crumb-detail", rfp);
   }
 
   function toggleOption(rfpId, field, optId) {
@@ -566,29 +707,17 @@
     if (cb) cb.checked = false;
   }
 
-  function togglePopover(id) {
-    document.querySelectorAll(".col-menu.is-open").forEach((el) => {
-      if (el.id !== id) el.classList.remove("is-open");
-    });
-    document.getElementById(id).classList.toggle("is-open");
-  }
-  document.addEventListener("click", (ev) => {
-    if (!ev.target.closest(".add-wrap")) {
-      document.querySelectorAll(".col-menu.is-open").forEach((el) => el.classList.remove("is-open"));
-    }
-  });
-
   // ---------------------------------------------------------------------
   // View switching + breadcrumb (mirrors Valt: selecting an RFP replaces
   // the table in place and the breadcrumb expands to include its name).
   // ---------------------------------------------------------------------
-  function renderCrumb() {
-    const el = document.getElementById("crumb");
-    if (state.openId) {
-      const rfp = findRfp(state.openId);
-      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">/</span><a onclick="showList()">RFPs</a><span class="sep">/</span><span class="crumb-current">${esc(rfp ? rfp.name : "RFP")}</span>`;
+  function renderCrumbInto(elId, rfp) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (rfp) {
+      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">&#8250;</span><a onclick="showList()">RFPs</a><span class="sep">&#8250;</span><span class="crumb-current">${esc(rfp.name)}</span>`;
     } else {
-      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">/</span><span class="crumb-current">RFPs</span>`;
+      el.innerHTML = `<a onclick="showList()">Sales</a><span class="sep">&#8250;</span><span class="crumb-current">RFPs</span>`;
     }
   }
 
@@ -596,17 +725,17 @@
     state.openId = null;
     document.getElementById("view-list").style.display = "";
     document.getElementById("view-detail").style.display = "none";
-    renderCrumb();
+    renderCrumbInto("crumb", null);
     renderList();
   }
   function showDetail(id) {
     state.openId = id;
     document.getElementById("view-list").style.display = "none";
     document.getElementById("view-detail").style.display = "";
-    renderCrumb();
     renderDetail(id);
   }
 
-  renderCrumb();
+  renderCrumbInto("crumb", null);
+  renderToolbarFilters();
   renderList();
 </script>
