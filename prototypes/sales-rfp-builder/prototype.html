@@ -183,8 +183,24 @@
      panel and its children the same flat tone. */
   .screen-contained { border: 1px solid var(--border); background: var(--bg); border-radius: var(--radius); padding: 1rem 1.2rem 1.3rem; }
 
+  /* Real shadcn/ui Breadcrumb structure (nav > ol > li, link/separator/current-page parts) — Figma's live
+     Breadcrumb node wasn't reachable to confirm directly this session (Dev Mode desktop was attached to a
+     blank file, the remote Figma connector only exposed the file's Cover page, and the REST token is still
+     expired per library-map.md) — built from shadcn/ui's documented/stable Breadcrumb markup instead and
+     styled with this file's own already-Figma-confirmed zinc tokens, per the design-system skill's Step 5
+     (composing from the system's rules when a live pull isn't available, flagged rather than guessed). */
+  .breadcrumb { margin-bottom: 0.5rem; }
+  .breadcrumb-list { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; font-size: 0.8rem; color: var(--fg-muted); }
+  .breadcrumb-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .breadcrumb-link { color: var(--fg-muted); text-decoration: none; cursor: pointer; }
+  .breadcrumb-link:hover { color: var(--fg); text-decoration: underline; }
+  .breadcrumb-sep { display: inline-flex; color: var(--fg-muted); opacity: 0.6; }
+  .breadcrumb-sep svg { width: 14px; height: 14px; }
+  .breadcrumb-page { color: var(--fg); font-weight: 500; }
+
   .page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
   .page-head h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; cursor: pointer; }
+  .page-meta { font-size: 0.78rem; color: var(--fg-muted); font-weight: 400; }
   /* "Inventory" stays the one fixed, prominent page title regardless of which view is showing — it does not
      dim or shrink when the RFP tab is active. The built rate card is instead surfaced as a small contained
      pill/chip beside it (.page-tab-chip, injected by ensureRfpTab() once a vetting pass has run), so the
@@ -223,14 +239,58 @@
   .btn.big { padding: 0.6rem 1.1rem; font-size: 0.88rem; }
 
   /* ----- Rate Card screen ----- */
-  .tabbar { display: flex; gap: 0.15rem; border-bottom: 1px solid var(--border); margin-bottom: 0.7rem; flex-wrap: wrap; }
-  .tabbar .tab { padding: 0.42rem 0.7rem; font-size: 0.82rem; color: var(--fg-muted); border-bottom: 2px solid transparent; cursor: default; }
-  .tabbar .tab.is-active { color: var(--fg); font-weight: 600; border-color: var(--primary); }
+  /* Pins the tabbar+toolbar+column-header row to the top of the viewport once the page-head ("Media
+     Roster"/+New Rate Card, a normal-flow sibling above this) scrolls past — per the user, only the tabs/
+     controls stay put; the page-head above and the chip row/table body below (all normal-flow) scroll
+     underneath it. Nothing between this and the viewport sets its own overflow, so the sticky reference is
+     the real page scroll. No border-bottom of its own — the column-header row now living inside it (see
+     #rc-thead-wrap below) already ends in one via thead th's own existing border-bottom. */
+  .rc-sticky-head { position: sticky; top: 0; z-index: 6; background: var(--bg); }
+  /* Clips the pinned column-header row to the visible table width and shifts it via JS
+     (syncPinnedHeaderScroll()) to track table-wrap's own horizontal scroll — see the markup comment above
+     #rc-thead-wrap for why this replaces a plain position:sticky thead. */
+  .rc-thead-wrap { overflow: hidden; }
+  .rc-thead-wrap thead th { position: static; }
+  /* Real shadcn/ui Tabs (TabsList/TabsTrigger) pattern — per the user's reference screenshot, replacing the
+     old underline treatment. Figma's live Tabs node wasn't directly reachable this session (its own page id
+     wasn't cached and couldn't be located via search_design_system, which — per library-map.md — is already
+     confirmed unreliable for discovery in this file), so this is built from shadcn/ui's standard, stable Tabs
+     spec (TabsList: bg-muted, rounded-lg, p-1; TabsTrigger active: bg-background, text-foreground, shadow-sm)
+     using this file's own already-Figma-confirmed tokens (--muted-bg, --bg, --radius-md/--radius-sm) rather
+     than inventing new ones — flagged as inferred per the design-system skill's Step 5, matching the
+     screenshot's own visual (muted pill container, active tab as a lighter rounded segment). */
+  .tabbar { display: inline-flex; align-items: center; gap: 2px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 3px; margin-bottom: 0.7rem; flex-wrap: wrap; width: fit-content; }
+  .tabbar .tab { padding: 0.32rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--fg-muted); border-radius: var(--radius-sm); cursor: default; white-space: nowrap; }
+  .tabbar .tab.is-active { background: var(--bg); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
   .tabbar .tab.is-clickable { cursor: pointer; }
-  .tabbar .tab.is-clickable:hover { color: var(--fg); }
+  .tabbar .tab.is-clickable:hover:not(.is-active) { color: var(--fg); }
 
   .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
   .search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem; background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem; }
+  /* Icon-first toolbar controls (Filter/Sort/Group/View collapse to icon+badge+chevron, search collapses to
+     an icon-only trigger) — per the user's reference screenshot, using real icons pulled live from the
+     design system's Figma Icons page rather than guessed glyphs (node ids in the markup comment above). Only
+     the UX/markup shape changed here, not the underlying token palette — buttons still use the existing
+     `.btn` base (36px/var(--border)/var(--radius-md)). */
+  .tb-search {
+    display: inline-flex; align-items: center; gap: 6px; height: 36px; width: 36px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--fg-muted);
+    padding: 0 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: width 0.15s ease;
+  }
+  .tb-search:hover { background: var(--muted-bg); }
+  .tb-search.is-open { width: 220px; cursor: default; }
+  .tb-search .icon-search { flex: none; }
+  .tb-search input { border: 0; outline: 0; background: transparent; flex: 1; min-width: 0; color: var(--fg); font-size: 0.83rem; display: none; }
+  .tb-search.is-open input { display: block; }
+  .tb-icon-btn { padding: 0 10px; gap: 6px; }
+  .tb-icon-btn svg:not(.tb-chevron) { flex: none; width: 16px; height: 16px; }
+  .tb-badge {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+    padding: 0 4px; border-radius: 999px; background: var(--fg); color: var(--bg); font-size: 0.68rem;
+    font-weight: 700; line-height: 1; flex: none;
+  }
+  .tb-chevron { flex: none; opacity: 0.7; }
   /* Real lucide-search markup (confirmed live in Storybook's InputGroup story, size-4/16px, stroke=currentColor
      inheriting the muted-foreground color already used here) — replaces the 🔍 emoji placeholder everywhere
      a search box appears. flex:none so it doesn't get squeezed in a tight flex row. */
@@ -248,27 +308,20 @@
   .chip-clear { font-size: 0.76rem; color: var(--fg-muted); cursor: pointer; }
   .chip-clear:hover { color: var(--fg); text-decoration: underline; }
 
-  /* Per the user: the table scrolls (both directions) within its own box, not the whole page — sidebar and
-     the page header/tabbar/toolbar above the table must stay static when the table is scrolled. .table-card
-     itself stays at the visible-viewport WIDTH (not grown to fit the table) — only table-wrap scrolls.
-     Background is --bg (the page's own near-black), not --card-bg (a lighter charcoal used by other cards
-     elsewhere in this file) — per the user, the table should read as black, not a lighter panel. table/
-     .table-note below match this same --bg so the border, the table, and the "Showing N of M" footer strip
-     are one flat black surface with no seam, including whatever's scrolled out of view (a background painted
-     only on this div would stop at its own edge, not the table's). */
+  /* table-wrap still contains the table's HORIZONTAL scroll only, unchanged from before — sidebar and the
+     column-header row stay put during horizontal scroll the same way they always did (see .rc-thead-wrap
+     above, and syncPinnedHeaderScroll() in the script, for how the header row now tracks this scroll from
+     outside table-wrap). VERTICAL scroll, per the user, is now the real page's: table-wrap has no forced
+     height, so tbody's rows flow normally and the page scrolls through them, with .rc-sticky-head pinning the
+     tabs/controls/header row at the top as that happens. .table-card itself stays at the visible-viewport
+     WIDTH (not grown to fit the table) — only table-wrap scrolls horizontally. Background is --bg (the
+     page's own near-black), not --card-bg (a lighter charcoal used by other cards elsewhere in this file) —
+     per the user, the table should read as black, not a lighter panel. table/.table-note below match this
+     same --bg so the border, the table, and the "Showing N of M" footer strip are one flat black surface with
+     no seam, including whatever's scrolled out of view (a background painted only on this div would stop at
+     its own edge, not the table's). */
   .table-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); display: flex; flex-direction: column; }
-  /* overflow:auto on both axes — table-wrap's actual height is set in JS (sizeTableWrap(), near the bottom of
-     the script) as window.innerHeight minus this box's own top offset and the footer strip below it, re-run on
-     resize and every render. A CSS-only vh/flex chain was tried first but isn't reliable here: this file is
-     published as a Claude Artifact, which renders in an iframe that sizes ITSELF to fit the page's content
-     (via a ResizeObserver reporting scrollHeight to the parent) — `100vh` inside that iframe doesn't reliably
-     mean "the visible panel height" the way it does in an ordinary browser tab, since the iframe's own height
-     is a function of the content, not the other way around. Measuring window.innerHeight directly in JS and
-     writing an explicit pixel height sidesteps that circularity and works the same in both a plain browser tab
-     and the artifact iframe. position:sticky on thead th still needs this box to have a genuine (non-zero)
-     scrollable height to stick within — an unbounded/auto height here would silently break it, same failure
-     mode as before if this ever regresses. */
-  .table-wrap { overflow: auto; }
+  .table-wrap { overflow-x: auto; }
   /* table-layout:fixed + the colgroup widths from colWidth() below give every column a predictable,
      type-appropriate width instead of the browser's default auto-layout — which sizes each column purely
      off whatever happens to be in the currently-loaded rows, producing wildly uneven widths (a 3-char "HHI"
@@ -784,73 +837,129 @@
 
     <!-- ---------- SCREEN 1: RATE CARD ---------- -->
     <section id="screen-ratecard">
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item"><a class="breadcrumb-link" onclick="switchToInventory()">Inventory</a></li>
+          <li class="breadcrumb-sep" role="presentation" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></li>
+          <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Media Roster</span></li>
+        </ol>
+      </nav>
       <div class="page-head">
         <div class="page-tabs" id="page-tabs">
-          <h1 onclick="switchToInventory()">Inventory</h1>
+          <h1 onclick="switchToInventory()">Media Roster</h1>
+          <span class="page-meta">Synced from the Media Roster file · last updated Jul 13, 2026</span>
         </div>
         <button class="btn primary" onclick="openRfpModal()">+ New Rate Card</button>
       </div>
 
       <div id="view-inventory" class="screen is-active">
 
-      <div class="tabbar">
-        <div class="tab is-active is-clickable" data-tab="ratecard" onclick="switchTab('ratecard')">Embedded</div>
-        <div class="tab is-clickable" data-tab="newsletters" onclick="switchTab('newsletters')">Newsletters</div>
-        <div class="tab is-clickable" data-tab="dai" onclick="switchTab('dai')">DAI</div>
-        <div class="tab">Social</div>
-        <div class="tab">Custom</div>
-      </div>
-
-      <div class="toolbar">
-        <div class="search"><svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg> <input id="rc-search" type="text" placeholder="Search shows or genres…" oninput="renderRateCard()"></div>
-
-        <div class="tb-control" id="tb-filter">
-          <button type="button" class="btn" onclick="toggleTbPanel('filter', event)">Filter ▾</button>
-          <div class="col-menu tb-panel tb-panel-levels tb-panel-filter" id="tb-filter-panel">
-            <div class="view-panel-head">
-              <span>Filter</span>
-              <button type="button" class="view-reset-btn" onclick="clearFilterRows()">Reset</button>
-            </div>
-            <div id="tb-filter-levels"></div>
-            <button type="button" class="tb-add-level" onclick="addFilterRow()">+ Add another</button>
-          </div>
+      <!-- Sticky sub-header: tabs + controls pin to the top of the page once "Media Roster"/+New Rate Card
+           scrolls past — per the user, only the tabs/controls stay pinned; the page title and any active
+           filter/sort/group chips (below, outside this wrapper) scroll normally and pass underneath it.
+           Icons are real, confirmed Figma assets (Icons page, "Icon / <Name>" nodes, fileKey
+           seHpMplPQg041r9RKbv09a) pulled live this session — ListFilter 5197:3638, ArrowUpDown 5197:4215,
+           Layers 5197:3666, Columns3 5197:3923, ChevronDown 5197:4026 — not guessed, per the reference
+           screenshot's icon-first/badge-count toolbar pattern. Search collapses to an icon-only trigger
+           (matching the screenshot) and expands in place on click. -->
+      <div class="rc-sticky-head" id="rc-sticky-head">
+        <div class="tabbar">
+          <div class="tab is-active is-clickable" data-tab="ratecard" onclick="switchTab('ratecard')">Embedded</div>
+          <div class="tab is-clickable" data-tab="newsletters" onclick="switchTab('newsletters')">Newsletters</div>
+          <div class="tab is-clickable" data-tab="dai" onclick="switchTab('dai')">DAI</div>
+          <div class="tab">Social</div>
+          <div class="tab">Custom</div>
         </div>
 
-        <div class="tb-control" id="tb-sort">
-          <button type="button" class="btn" onclick="toggleTbPanel('sort', event)">Sort ▾</button>
-          <div class="col-menu tb-panel tb-panel-levels" id="tb-sort-panel">
-            <div class="view-panel-head">
-              <span>Sort</span>
-              <button type="button" class="view-reset-btn" onclick="clearLevels('sort')">Reset</button>
-            </div>
-            <div id="tb-sort-levels"></div>
-            <button type="button" class="tb-add-level" onclick="addLevel('sort')">+ Add another</button>
+        <div class="toolbar">
+          <div class="tb-search" id="rc-search-wrap" onclick="openRcSearch(event)">
+            <svg class="icon-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+            <input id="rc-search" type="text" placeholder="Search shows or genres…" oninput="renderRateCard()" onblur="collapseRcSearchIfEmpty()">
           </div>
+
+          <div class="tb-control" id="tb-filter">
+            <button type="button" class="btn tb-icon-btn" onclick="toggleTbPanel('filter', event)" title="Filter" aria-label="Filter">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M7 12h10"></path><path d="M11 18h2"></path></svg>
+              <span class="tb-badge" id="tb-filter-badge" style="display:none;"></span>
+              <svg class="tb-chevron" width="10" height="6" viewBox="0 0 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1L7 7L13 1"></path></svg>
+            </button>
+            <div class="col-menu tb-panel tb-panel-levels tb-panel-filter" id="tb-filter-panel">
+              <div class="view-panel-head">
+                <span>Filter</span>
+                <button type="button" class="view-reset-btn" onclick="clearFilterRows()">Reset</button>
+              </div>
+              <div id="tb-filter-levels"></div>
+              <button type="button" class="tb-add-level" onclick="addFilterRow()">+ Add another</button>
+            </div>
+          </div>
+
+          <div class="tb-control" id="tb-sort">
+            <button type="button" class="btn tb-icon-btn" onclick="toggleTbPanel('sort', event)" title="Sort" aria-label="Sort">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path></svg>
+              <span class="tb-badge" id="tb-sort-badge" style="display:none;"></span>
+              <svg class="tb-chevron" width="10" height="6" viewBox="0 0 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1L7 7L13 1"></path></svg>
+            </button>
+            <div class="col-menu tb-panel tb-panel-levels" id="tb-sort-panel">
+              <div class="view-panel-head">
+                <span>Sort</span>
+                <button type="button" class="view-reset-btn" onclick="clearLevels('sort')">Reset</button>
+              </div>
+              <div id="tb-sort-levels"></div>
+              <button type="button" class="tb-add-level" onclick="addLevel('sort')">+ Add another</button>
+            </div>
+          </div>
+
+          <div class="tb-control" id="tb-group">
+            <button type="button" class="btn tb-icon-btn" onclick="toggleTbPanel('group', event)" title="Group" aria-label="Group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="M2.4 14.5a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83l-2.4-1.09"></path><path d="M2.4 10.5a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83l-2.4-1.09"></path></svg>
+              <span class="tb-badge" id="tb-group-badge" style="display:none;"></span>
+              <svg class="tb-chevron" width="10" height="6" viewBox="0 0 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1L7 7L13 1"></path></svg>
+            </button>
+            <div class="col-menu tb-panel tb-panel-levels" id="tb-group-panel">
+              <div class="view-panel-head">
+                <span>Group</span>
+                <button type="button" class="view-reset-btn" onclick="clearLevels('group')">Reset</button>
+              </div>
+              <div id="tb-group-levels"></div>
+              <button type="button" class="tb-add-level" onclick="addLevel('group')">+ Add another</button>
+            </div>
+          </div>
+
+          <div class="tb-control" id="tb-view">
+            <button type="button" class="btn tb-icon-btn" onclick="toggleViewPanel(event)" title="Edit Columns" aria-label="Edit Columns">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 1V19M13 1V19M3 1H17C18.1046 1 19 1.89543 19 3V17C19 18.1046 18.1046 19 17 19H3C1.89543 19 1 18.1046 1 17V3C1 1.89543 1.89543 1 3 1Z"></path></svg>
+              <svg class="tb-chevron" width="10" height="6" viewBox="0 0 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1L7 7L13 1"></path></svg>
+            </button>
+            <div class="col-menu tb-panel tb-panel-view" id="tb-view-panel">
+              <div class="view-panel-head">
+                <span>Edit Columns</span>
+                <button type="button" class="view-reset-btn" onclick="resetColumnView()">Reset</button>
+              </div>
+              <div class="view-col-list" id="tb-view-list"></div>
+            </div>
+          </div>
+
         </div>
 
-        <div class="tb-control" id="tb-group">
-          <button type="button" class="btn" onclick="toggleTbPanel('group', event)">Group ▾</button>
-          <div class="col-menu tb-panel tb-panel-levels" id="tb-group-panel">
-            <div class="view-panel-head">
-              <span>Group</span>
-              <button type="button" class="view-reset-btn" onclick="clearLevels('group')">Reset</button>
-            </div>
-            <div id="tb-group-levels"></div>
-            <button type="button" class="tb-add-level" onclick="addLevel('group')">+ Add another</button>
-          </div>
+        <!-- Column-header row, pinned here (inside the already-sticky tabbar/toolbar block) instead of
+             inside table-wrap's own <thead> — a real <thead> living inside table-wrap can't reliably stay
+             sticky to the PAGE scroll once table-wrap's own bounded-height vertical scrollbox is removed (an
+             ancestor with overflow-x:auto forces overflow-y to also become a scroll container per the CSS
+             overflow spec, which traps position:sticky's reference frame to that non-scrolling box instead of
+             the real page — confirmed by direct measurement this session, not just theory). Moving the header
+             row up here sidesteps that entirely: it's a normal child of an already-correctly-sticky block, and
+             its horizontal position is kept in sync with table-wrap's own horizontal scroll via
+             syncPinnedHeaderScroll() (transform: translateX, driven by table-wrap's scroll event) rather than
+             CSS position:sticky. table-wrap's real <table> keeps the identical <colgroup> (rendered from the
+             same HTML string, see renderRateCard()) so columns always line up pixel-for-pixel. -->
+        <div class="rc-thead-wrap" id="rc-thead-wrap">
+          <table>
+            <colgroup id="rc-colgroup-pinned"></colgroup>
+            <thead>
+              <tr id="rc-thead-row"></tr>
+            </thead>
+          </table>
         </div>
-
-        <div class="tb-control" id="tb-view">
-          <button type="button" class="btn" onclick="toggleViewPanel(event)">View ▾</button>
-          <div class="col-menu tb-panel tb-panel-view" id="tb-view-panel">
-            <div class="view-panel-head">
-              <span>Edit Columns</span>
-              <button type="button" class="view-reset-btn" onclick="resetColumnView()">Reset</button>
-            </div>
-            <div class="view-col-list" id="tb-view-list"></div>
-          </div>
-        </div>
-
       </div>
       <div class="toolbar-hint">Use Filter / Sort / Group above for quick access, or click any column name — every column supports all three either way.</div>
 
@@ -862,9 +971,6 @@
         <div class="table-wrap">
           <table>
             <colgroup id="rc-colgroup"></colgroup>
-            <thead>
-              <tr id="rc-thead-row"></tr>
-            </thead>
             <tbody id="rc-tbody"></tbody>
           </table>
         </div>
@@ -6053,8 +6159,10 @@ function colWidth(col){
 function buildRcHeader(){
   const visible = visibleCols();
   const locked = lockedColKey();
-  document.getElementById("rc-colgroup").innerHTML = `<col class="col-check-td" style="width:36px">`
+  const colgroupHtml = `<col class="col-check-td" style="width:36px">`
     + visible.map(col => `<col id="rccol-${col.key}" style="width:${colWidth(col)}px">`).join("");
+  document.getElementById("rc-colgroup").innerHTML = colgroupHtml;
+  document.getElementById("rc-colgroup-pinned").innerHTML = colgroupHtml;
   document.getElementById("rc-thead-row").innerHTML = `
     <th class="col-check-th"><input type="checkbox" class="rc-checkbox" id="rc-select-all" onclick="onSelectAllClick(event)" aria-label="Select all rows"></th>
     ` + visible.map(col => `
@@ -6558,9 +6666,29 @@ function clearLevels(kind){
 
 function syncToolbarControls(){
   const st = state();
-  document.getElementById("tb-filter").classList.toggle("has-value", Object.keys(st.filters).length > 0);
-  document.getElementById("tb-sort").classList.toggle("has-value", st.sort.some(r => r.field));
-  document.getElementById("tb-group").classList.toggle("has-value", st.group.some(r => r.field));
+  const filterCount = Object.keys(st.filters).length;
+  const sortCount = st.sort.filter(r => r.field).length;
+  const groupCount = st.group.filter(r => r.field).length;
+  document.getElementById("tb-filter").classList.toggle("has-value", filterCount > 0);
+  document.getElementById("tb-sort").classList.toggle("has-value", sortCount > 0);
+  document.getElementById("tb-group").classList.toggle("has-value", groupCount > 0);
+  setTbBadge("tb-filter-badge", filterCount);
+  setTbBadge("tb-sort-badge", sortCount);
+  setTbBadge("tb-group-badge", groupCount);
+}
+function setTbBadge(id, count){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = count > 0 ? "" : "none";
+  el.textContent = count;
+}
+function openRcSearch(){
+  const wrap = document.getElementById("rc-search-wrap");
+  wrap.classList.add("is-open");
+  document.getElementById("rc-search").focus();
+}
+function collapseRcSearchIfEmpty(){
+  if (!document.getElementById("rc-search").value) document.getElementById("rc-search-wrap").classList.remove("is-open");
 }
 
 function onColMultiChange(key, value, checked){
@@ -6826,7 +6954,7 @@ function renderRateCard(){
     chipRow.innerHTML = "";
   }
   syncToolbarControls();
-  sizeTableWrap();
+  syncPinnedHeaderScroll();
 }
 
 function onRowCheckClick(event, name){
@@ -6955,29 +7083,18 @@ function bulkAddToRateCard(cardId){
   switchToRfp(cardId);
 }
 
-/* Sets .table-wrap's height to whatever vertical space is actually left in the viewport — measured directly
-   via window.innerHeight rather than a CSS vh/flex chain, since this file is published as a Claude Artifact
-   (an iframe that sizes itself to fit the page's own content) where `100vh` doesn't reliably mean "the visible
-   panel height" the way it does in an ordinary browser tab. Re-run on every render (chip row show/hide, tab
-   switches, and filter/sort/group changes can all shift table-wrap's own top offset by a few pixels) and on
-   window resize. MIN_HEIGHT is a generous floor (not just a small fallback) — a fresh artifact iframe's
-   starting height is whatever the host panel happens to default to, and this floor deliberately asks for more
-   than that so the table opens at a comfortable, usable size (~10-11 rows) and the page's own resize-reporting
-   (this file has no control over that mechanism, it's outer chrome) has real content height to size the panel
-   against, rather than the table quietly shrinking to fit whatever the host started at. */
-function sizeTableWrap(){
-  const MIN_HEIGHT = 640;
+/* Keeps the pinned column-header row (#rc-thead-wrap, living in .rc-sticky-head — see the markup comment
+   there) lined up with table-wrap's own horizontal scroll position, since it's no longer a real <thead>
+   inside table-wrap and so can't rely on the browser to scroll it automatically. Shifts the pinned header's
+   own <table> left by exactly table-wrap's scrollLeft; #rc-thead-wrap's overflow:hidden clips whatever that
+   pushes outside its box. Called on table-wrap's own scroll event and once after every render (a filter/sort/
+   group change can reset scrollLeft to 0 without firing a scroll event). */
+function syncPinnedHeaderScroll(){
   const wrap = document.querySelector(".table-wrap");
-  const card = wrap && wrap.closest(".table-card");
-  if (!wrap || !card) return;
-  const note = card.querySelector(".table-note");
-  const top = wrap.getBoundingClientRect().top;
-  const noteHeight = note ? note.getBoundingClientRect().height : 0;
-  const bottomBreathingRoom = 24;
-  const available = window.innerHeight - top - noteHeight - bottomBreathingRoom;
-  wrap.style.height = Math.max(MIN_HEIGHT, available) + "px";
+  const pinnedTable = document.querySelector("#rc-thead-wrap table");
+  if (!wrap || !pinnedTable) return;
+  pinnedTable.style.transform = `translateX(${-wrap.scrollLeft}px)`;
 }
-window.addEventListener("resize", sizeTableWrap);
 
 /* Nested grouping: recursively partitions rows by each active group level, in order. */
 function buildNestedGroups(rows, columns, levels, levelIndex){
@@ -7488,5 +7605,6 @@ function showResultTab(tab){
 buildRcHeader();
 resetRfp();
 renderRateCard();
+document.querySelector(".table-wrap").addEventListener("scroll", syncPinnedHeaderScroll);
 if (window.location.pathname === "/rfp-builder") openRfpModal();
 </script>
