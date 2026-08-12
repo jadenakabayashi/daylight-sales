@@ -259,13 +259,17 @@
      using this file's own already-Figma-confirmed tokens (--muted-bg, --bg, --radius-md/--radius-sm) rather
      than inventing new ones — flagged as inferred per the design-system skill's Step 5, matching the
      screenshot's own visual (muted pill container, active tab as a lighter rounded segment). */
-  .tabbar { display: inline-flex; align-items: center; gap: 2px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 3px; margin-bottom: 0.7rem; flex-wrap: wrap; width: fit-content; }
+  /* Tabs and toolbar controls share one row — per the user, the toolbar sits right-aligned on the same line
+     as the tabs instead of stacked below them. flex-wrap on the row (not just the two children) lets the
+     toolbar drop to its own line only if the window gets too narrow for both side by side. */
+  .rc-tabbar-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .tabbar { display: inline-flex; align-items: center; gap: 2px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 3px; flex-wrap: wrap; width: fit-content; }
   .tabbar .tab { padding: 0.32rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--fg-muted); border-radius: var(--radius-sm); cursor: default; white-space: nowrap; }
   .tabbar .tab.is-active { background: var(--bg); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
   .tabbar .tab.is-clickable { cursor: pointer; }
   .tabbar .tab.is-clickable:hover:not(.is-active) { color: var(--fg); }
 
-  .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .toolbar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
   .search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 0.1rem); padding: 0.4rem 0.65rem; background: var(--card-bg); color: var(--fg-muted); font-size: 0.82rem; }
   /* Icon-first toolbar controls (Filter/Sort/Group/View collapse to icon+badge+chevron, search collapses to
      an icon-only trigger) — per the user's reference screenshot, using real icons pulled live from the
@@ -863,6 +867,7 @@
            screenshot's icon-first/badge-count toolbar pattern. Search collapses to an icon-only trigger
            (matching the screenshot) and expands in place on click. -->
       <div class="rc-sticky-head" id="rc-sticky-head">
+        <div class="rc-tabbar-row">
         <div class="tabbar">
           <div class="tab is-active is-clickable" data-tab="ratecard" onclick="switchTab('ratecard')">Embedded</div>
           <div class="tab is-clickable" data-tab="newsletters" onclick="switchTab('newsletters')">Newsletters</div>
@@ -939,6 +944,7 @@
             </div>
           </div>
 
+        </div>
         </div>
 
         <!-- Column-header row, pinned here (inside the already-sticky tabbar/toolbar block) instead of
