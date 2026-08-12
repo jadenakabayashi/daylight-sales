@@ -707,7 +707,7 @@
   .stat-tile .num { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .stat-tile .lbl { font-size: 0.72rem; color: var(--fg-muted); margin-top: 0.15rem; }
 
-  .result-tabs { display: inline-flex; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .result-tabs { display: inline-flex; flex-wrap: wrap; }
   .result-tab {
     display: flex; align-items: center; gap: 0.4rem; height: 36px; padding: 0 0.9rem;
     font-size: 0.83rem; font-weight: 500; color: var(--fg-muted);
@@ -994,20 +994,38 @@
 
       <div id="view-rfpresults" class="screen screen-contained">
         <div id="results-body" style="display:none;">
-          <!-- Real shadcn/ui ToggleGroup pattern (variant="outline": connected segments, shared borders,
-               only the first/last corners rounded) per the user's explicit ask, replacing the old
-               underline-tab treatment — Figma's own ToggleGroup node wasn't locatable this session
-               (search_design_system stayed empty, same caveat as Tabs/Breadcrumb above), so this is the
-               standard/stable spec built from this file's own confirmed tokens, flagged as inferred per the
-               design-system skill's Step 5. The count badges keep the exact --success/--warning/--destructive
-               colors the removed stat tiles used for Recommended/Flagged/Eliminated — Filtered out/Added
-               Manually never had a color there and stay neutral. -->
-          <div class="result-tabs" role="group" aria-label="Vetting result view">
-            <button type="button" class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt rec" id="cnt-recommended">0</span></button>
-            <button type="button" class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt flag" id="cnt-flagged">0</span></button>
-            <button type="button" class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt elim" id="cnt-eliminated">0</span></button>
-            <button type="button" class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></button>
-            <button type="button" class="result-tab" data-tab="manual" onclick="showResultTab('manual')">Added Manually <span class="cnt" id="cnt-manual">0</span></button>
+          <!-- Read-only echo of the Inventory tabbar (Embedded/Newsletters/DAI/Social/Custom) — per the user,
+               which inventory tab this rate card was built from should stay visible/persist on the results
+               view too, not disappear once you leave Inventory. Same markup/data-tab values as the real,
+               clickable tabbar in #view-inventory (not clickable here, no onclick) — switchTab()'s existing
+               `document.querySelectorAll(".tabbar .tab")` already updates every ".tabbar .tab" in the
+               document, so this copy tracks the real one's active state automatically, no extra JS needed.
+               Shares one row with the result ToggleGroup, moved to the far right, mirroring the Inventory
+               page's own tabbar+toolbar row layout (see .rc-tabbar-row above). -->
+          <div class="rc-tabbar-row">
+            <div class="tabbar">
+              <div class="tab is-active" data-tab="ratecard">Embedded</div>
+              <div class="tab" data-tab="newsletters">Newsletters</div>
+              <div class="tab" data-tab="dai">DAI</div>
+              <div class="tab">Social</div>
+              <div class="tab">Custom</div>
+            </div>
+
+            <!-- Real shadcn/ui ToggleGroup pattern (variant="outline": connected segments, shared borders,
+                 only the first/last corners rounded) per the user's explicit ask, replacing the old
+                 underline-tab treatment — Figma's own ToggleGroup node wasn't locatable this session
+                 (search_design_system stayed empty, same caveat as Tabs/Breadcrumb above), so this is the
+                 standard/stable spec built from this file's own confirmed tokens, flagged as inferred per the
+                 design-system skill's Step 5. The count badges keep the exact --success/--warning/--destructive
+                 colors the removed stat tiles used for Recommended/Flagged/Eliminated — Filtered out/Added
+                 Manually never had a color there and stay neutral. -->
+            <div class="result-tabs" role="group" aria-label="Vetting result view">
+              <button type="button" class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt rec" id="cnt-recommended">0</span></button>
+              <button type="button" class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt flag" id="cnt-flagged">0</span></button>
+              <button type="button" class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt elim" id="cnt-eliminated">0</span></button>
+              <button type="button" class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></button>
+              <button type="button" class="result-tab" data-tab="manual" onclick="showResultTab('manual')">Added Manually <span class="cnt" id="cnt-manual">0</span></button>
+            </div>
           </div>
 
           <div class="result-panel is-active" id="panel-recommended"><div class="result-grid"></div></div>
