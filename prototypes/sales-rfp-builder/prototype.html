@@ -263,6 +263,17 @@
      as the tabs instead of stacked below them. flex-wrap on the row (not just the two children) lets the
      toolbar drop to its own line only if the window gets too narrow for both side by side. */
   .rc-tabbar-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  /* Same sticky treatment as the Media Roster page's .rc-sticky-head, per the user — but #view-rfpresults is
+     a bordered .screen-contained panel (padding 1rem 1.2rem 1.3rem), not a full-bleed page, so this negative-
+     margins itself out to the panel's own edges first (else it'd stick narrower than the panel, with a
+     visible padding gap on both sides once docked) and re-pads internally to match. Rounds only its top
+     corners to the panel's own --radius so it blends with the panel's top border at rest (unscrolled); once
+     actually stuck at viewport top, it reads the same as the Media Roster page's own sticky bar. */
+  #rc-results-sticky-head {
+    position: sticky; top: 0; z-index: 6; background: var(--bg);
+    margin: -1rem -1.2rem 0.7rem; padding: 1rem 1.2rem 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
   .tabbar { display: inline-flex; align-items: center; gap: 2px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 3px; flex-wrap: wrap; width: fit-content; }
   .tabbar .tab { padding: 0.32rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--fg-muted); border-radius: var(--radius-sm); cursor: default; white-space: nowrap; }
   .tabbar .tab.is-active { background: var(--bg); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
@@ -1001,8 +1012,13 @@
                `document.querySelectorAll(".tabbar .tab")` already updates every ".tabbar .tab" in the
                document, so this copy tracks the real one's active state automatically, no extra JS needed.
                Shares one row with the result ToggleGroup, moved to the far right, mirroring the Inventory
-               page's own tabbar+toolbar row layout (see .rc-tabbar-row above). -->
-          <div class="rc-tabbar-row">
+               page's own tabbar+toolbar row layout (see .rc-tabbar-row above). Also sticky, per the user —
+               same top:0 pinning behavior as the Media Roster view's own .rc-sticky-head, so it stays put
+               while the show-card grid below scrolls underneath it. Negative-margined out to
+               #view-rfpresults' own edges (a bordered .screen-contained panel, unlike the Media Roster
+               page's full-bleed one) so it spans the panel's full width once stuck, instead of floating
+               narrower than the panel's own border. -->
+          <div class="rc-tabbar-row" id="rc-results-sticky-head">
             <div class="tabbar">
               <div class="tab is-active" data-tab="ratecard">Embedded</div>
               <div class="tab" data-tab="newsletters">Newsletters</div>
