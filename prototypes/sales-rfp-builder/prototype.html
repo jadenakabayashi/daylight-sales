@@ -274,6 +274,12 @@
     margin: -1rem -1.2rem 0.7rem; padding: 1rem 1.2rem 0;
     border-radius: var(--radius) var(--radius) 0 0;
   }
+  /* Holds the (real, reparented, not cloned) .page-tab-chip once syncContextPill() moves it in here — see
+     the markup comment above #rc-context-pill-slot. :empty means it takes no space (and contributes no
+     flex `gap`) until a chip actually lives inside it, so there's no permanent dead space when scrolled up
+     and nothing's been moved yet. */
+  .rc-left-group { display: flex; align-items: center; gap: 0.6rem; }
+  .rc-context-pill-slot:empty { display: none; }
   .tabbar { display: inline-flex; align-items: center; gap: 2px; background: var(--muted-bg); border-radius: var(--radius-md); padding: 3px; flex-wrap: wrap; width: fit-content; }
   .tabbar .tab { padding: 0.32rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--fg-muted); border-radius: var(--radius-sm); cursor: default; white-space: nowrap; }
   .tabbar .tab.is-active { background: var(--bg); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
@@ -1017,14 +1023,25 @@
                while the show-card grid below scrolls underneath it. Negative-margined out to
                #view-rfpresults' own edges (a bordered .screen-contained panel, unlike the Media Roster
                page's full-bleed one) so it spans the panel's full width once stuck, instead of floating
-               narrower than the panel's own border. -->
+               narrower than the panel's own border.
+
+               #rc-context-pill-slot: empty until scrolled past the point where the page-head's own identity
+               chip (e.g. "Babbel × Oxford Road Rate Card", .page-tab-chip) would otherwise be hidden behind
+               this sticky bar — at that point syncContextPill() (in the script) physically re-parents that
+               SAME chip element (not a clone/copy) in here, in front of the tabbar echo, so which rate card
+               you're looking at stays visible/persistent while scrolled. The tabbar naturally shifts right to
+               make room since they're just flex siblings in .rc-left-group. Moves back to #page-tabs once
+               scrolled back up (or once you leave this view) — same node, same onclick, just reparented. -->
           <div class="rc-tabbar-row" id="rc-results-sticky-head">
+            <div class="rc-left-group">
+            <span class="rc-context-pill-slot" id="rc-context-pill-slot"></span>
             <div class="tabbar">
               <div class="tab is-active" data-tab="ratecard">Embedded</div>
               <div class="tab" data-tab="newsletters">Newsletters</div>
               <div class="tab" data-tab="dai">DAI</div>
               <div class="tab">Social</div>
               <div class="tab">Custom</div>
+            </div>
             </div>
 
             <!-- Real shadcn/ui ToggleGroup pattern (variant="outline": connected segments, shared borders,
@@ -7487,6 +7504,7 @@ function switchToInventory(){
   document.getElementById("view-inventory").classList.add("is-active");
   document.getElementById("view-rfpresults").classList.remove("is-active");
   document.querySelectorAll(".page-tab-chip").forEach(el => el.classList.remove("is-active"));
+  syncContextPill();
 }
 function switchToRfp(id){
   activeRfpId = id;
@@ -7494,7 +7512,35 @@ function switchToRfp(id){
   document.getElementById("view-rfpresults").classList.add("is-active");
   document.querySelectorAll(".page-tab-chip").forEach(el => el.classList.toggle("is-active", el.dataset.rfpId === id));
   renderResults();
+  syncContextPill();
 }
+/* Physically re-parents the active card's own .page-tab-chip (same node, same onclick — never a clone)
+   between #page-tabs (its normal home, in the page-head) and #rc-context-pill-slot (inside the results
+   view's sticky bar) — per the user, "that correlative pill should move into position upon scroll for
+   persistent context": once the page-head has scrolled far enough that the chip would be hidden behind the
+   sticky bar anyway, move it into the sticky bar instead, in front of the tabbar echo (which shifts right
+   to make room, since they're just flex siblings in .rc-left-group). Moves back once scrolled back up, or
+   once you're not looking at a results view at all (switchToInventory(), or no active card yet). Called on
+   scroll, and once proactively on switchToRfp()/switchToInventory() so the chip is never briefly in the
+   wrong place right after a view change, before the next scroll event would otherwise fix it. */
+function syncContextPill(){
+  const stickyHead = document.getElementById("rc-results-sticky-head");
+  const slot = document.getElementById("rc-context-pill-slot");
+  const pageTabs = document.getElementById("page-tabs");
+  if (!stickyHead || !slot || !pageTabs) return;
+  const onResultsView = document.getElementById("view-rfpresults").classList.contains("is-active");
+  const chip = activeRfpId ? document.getElementById("page-tab-rfp-" + activeRfpId) : null;
+  if (!chip) return;
+  /* stickyHead's own top hitting 0 IS the docked/stuck moment — a direct, scroll-position-independent
+     signal, rather than re-deriving it from the page-head's own position. Since page-head sits above
+     stickyHead's natural resting spot with real gap between them (breadcrumb, this panel's own border/
+     padding), stickyHead can only reach top:0 once page-head has already scrolled further up than that —
+     it's guaranteed already hidden by this point, not just "about to be." */
+  const shouldDock = onResultsView && stickyHead.getBoundingClientRect().top <= 0;
+  if (shouldDock && chip.parentElement !== slot) slot.appendChild(chip);
+  else if (!shouldDock && chip.parentElement !== pageTabs) pageTabs.appendChild(chip);
+}
+window.addEventListener("scroll", syncContextPill, {passive: true});
 /* Reopens the modal on the RFP Response step with the ACTIVE card's own form values restored (unlike
    openRfpModal(), which resets the form to blank for a new draft) — draftRfpId tells the next
    finishVetting() to update this card in place rather than create another one. */
