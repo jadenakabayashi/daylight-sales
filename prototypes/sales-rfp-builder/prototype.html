@@ -706,14 +706,21 @@
   .stat-tile { border: 1px solid var(--border); background: var(--card-bg); border-radius: var(--radius); padding: 0.6rem 0.8rem; }
   .stat-tile .num { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .stat-tile .lbl { font-size: 0.72rem; color: var(--fg-muted); margin-top: 0.15rem; }
-  .stat-tile.rec .num { color: var(--success); }
-  .stat-tile.flag .num { color: var(--warning); }
-  .stat-tile.elim .num { color: var(--destructive); }
 
-  .result-tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid var(--border); margin-bottom: 0.8rem; flex-wrap: wrap; }
-  .result-tab { padding: 0.4rem 0.75rem; font-size: 0.83rem; border-bottom: 2px solid transparent; cursor: pointer; color: var(--fg-muted); display: flex; align-items: center; gap: 0.4rem; }
+  .result-tabs { display: inline-flex; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .result-tab {
+    display: flex; align-items: center; gap: 0.4rem; height: 36px; padding: 0 0.9rem;
+    font-size: 0.83rem; font-weight: 500; color: var(--fg-muted);
+    background: var(--bg); border: 1px solid var(--border); margin-left: -1px; cursor: pointer;
+  }
+  .result-tab:first-child { margin-left: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }
+  .result-tab:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .result-tab:hover { background: var(--muted-bg); }
+  .result-tab.is-active { position: relative; z-index: 1; background: var(--muted-bg); color: var(--fg); font-weight: 600; }
   .result-tab .cnt { background: var(--muted-bg); border-radius: 999px; padding: 0.05rem 0.45rem; font-size: 0.72rem; }
-  .result-tab.is-active { color: var(--fg); font-weight: 600; border-color: var(--primary); }
+  .result-tab .cnt.rec { background: var(--success-bg); color: var(--success); }
+  .result-tab .cnt.flag { background: var(--warning-bg); color: var(--warning); }
+  .result-tab .cnt.elim { background: var(--destructive-bg); color: var(--destructive); }
 
   .result-panel { display: none; }
   .result-panel.is-active { display: block; }
@@ -987,25 +994,20 @@
 
       <div id="view-rfpresults" class="screen screen-contained">
         <div id="results-body" style="display:none;">
-          <div class="banner">
-            <span class="ic">ℹ️</span>
-            <div>Pass 1 runs against the current Rate Card snapshot (<b id="stat-total-inline"></b> shows). A few competitive-exclusivity and prior-vetting flags below are <b>simulated for this proof of concept</b> — marked inline — since the real roster has no active conflicts for this advertiser yet. Review and adjust the proposal below, then send it to Ad Ops — they'll confirm any show that hasn't yet approved or declined this brand and log the "whys" back onto the RFP before it goes back to the agency.</div>
-          </div>
-
-          <div class="stat-row">
-            <div class="stat-tile"><div class="num tabular" id="stat-total">0</div><div class="lbl">Rate Card total</div></div>
-            <div class="stat-tile"><div class="num tabular" id="stat-genre">0</div><div class="lbl">Genre/format match</div></div>
-            <div class="stat-tile rec"><div class="num tabular" id="stat-rec">0</div><div class="lbl">Recommended</div></div>
-            <div class="stat-tile flag"><div class="num tabular" id="stat-flag">0</div><div class="lbl">Flagged</div></div>
-            <div class="stat-tile elim"><div class="num tabular" id="stat-elim">0</div><div class="lbl">Eliminated</div></div>
-          </div>
-
-          <div class="result-tabs">
-            <div class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt" id="cnt-recommended">0</span></div>
-            <div class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt" id="cnt-flagged">0</span></div>
-            <div class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt" id="cnt-eliminated">0</span></div>
-            <div class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></div>
-            <div class="result-tab" data-tab="manual" onclick="showResultTab('manual')">Added Manually <span class="cnt" id="cnt-manual">0</span></div>
+          <!-- Real shadcn/ui ToggleGroup pattern (variant="outline": connected segments, shared borders,
+               only the first/last corners rounded) per the user's explicit ask, replacing the old
+               underline-tab treatment — Figma's own ToggleGroup node wasn't locatable this session
+               (search_design_system stayed empty, same caveat as Tabs/Breadcrumb above), so this is the
+               standard/stable spec built from this file's own confirmed tokens, flagged as inferred per the
+               design-system skill's Step 5. The count badges keep the exact --success/--warning/--destructive
+               colors the removed stat tiles used for Recommended/Flagged/Eliminated — Filtered out/Added
+               Manually never had a color there and stay neutral. -->
+          <div class="result-tabs" role="group" aria-label="Vetting result view">
+            <button type="button" class="result-tab is-active" data-tab="recommended" onclick="showResultTab('recommended')">Recommended <span class="cnt rec" id="cnt-recommended">0</span></button>
+            <button type="button" class="result-tab" data-tab="flagged" onclick="showResultTab('flagged')">Flagged <span class="cnt flag" id="cnt-flagged">0</span></button>
+            <button type="button" class="result-tab" data-tab="eliminated" onclick="showResultTab('eliminated')">Eliminated <span class="cnt elim" id="cnt-eliminated">0</span></button>
+            <button type="button" class="result-tab" data-tab="filtered" onclick="showResultTab('filtered')">Filtered out <span class="cnt" id="cnt-filtered">0</span></button>
+            <button type="button" class="result-tab" data-tab="manual" onclick="showResultTab('manual')">Added Manually <span class="cnt" id="cnt-manual">0</span></button>
           </div>
 
           <div class="result-panel is-active" id="panel-recommended"><div class="result-grid"></div></div>
@@ -7482,10 +7484,6 @@ function renderResults(){
   const card = VET();
   if (!card) return;
 
-  document.getElementById("stat-total-inline").textContent = SHOWS.length;
-  document.getElementById("stat-total").textContent = SHOWS.length;
-  document.getElementById("stat-genre").textContent = SHOWS.length - card.filteredOut.length;
-
   const flist = document.querySelector("#panel-filtered .filtered-list");
   flist.innerHTML = card.filteredOut.length ? card.filteredOut.map(s => `
     <div class="filtered-row"><span>${s.name}</span><span class="fg">${s.genre} — doesn't match selected target genres</span></div>
@@ -7495,9 +7493,6 @@ function renderResults(){
   const buckets = {recommended: [], flagged: [], eliminated: [], manual: []};
   card.evaluated.forEach(e => buckets[e.bucket].push(e));
 
-  document.getElementById("stat-rec").textContent = buckets.recommended.length;
-  document.getElementById("stat-flag").textContent = buckets.flagged.length;
-  document.getElementById("stat-elim").textContent = buckets.eliminated.length;
   document.getElementById("cnt-recommended").textContent = buckets.recommended.length;
   document.getElementById("cnt-flagged").textContent = buckets.flagged.length;
   document.getElementById("cnt-eliminated").textContent = buckets.eliminated.length;
