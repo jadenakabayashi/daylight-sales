@@ -284,6 +284,17 @@
      #rc-thead-wrap for why this replaces a plain position:sticky thead. */
   .rc-thead-wrap { overflow: hidden; }
   .rc-thead-wrap thead th { position: static; }
+  /* Overrides the global `table`/`thead th { background: var(--bg) }` rules (opaque, correct for the real
+     scrolling body — see .table-wrap below — and for CPM Workspace's own tables, neither of which this
+     should touch) specifically for the pinned column-header row, so it's translucent like the rest of
+     .rc-sticky-head instead of an opaque strip sitting on top of the glass effect. No backdrop-filter of its
+     own needed — .rc-sticky-head's own blur already applies to whatever's behind IT as a whole; a
+     translucent child here just lets that already-blurred backdrop keep showing through, tinted, rather than
+     being fully covered by an opaque fill. */
+  .rc-thead-wrap table, .rc-thead-wrap thead th { background: var(--bg-glass); }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .rc-thead-wrap table, .rc-thead-wrap thead th { background: var(--bg); }
+  }
   /* Real shadcn/ui Tabs (TabsList/TabsTrigger) pattern — per the user's reference screenshot, replacing the
      old underline treatment. Figma's live Tabs node wasn't directly reachable this session (its own page id
      wasn't cached and couldn't be located via search_design_system, which — per library-map.md — is already
