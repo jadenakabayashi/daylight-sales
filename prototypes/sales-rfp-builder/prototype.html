@@ -10,6 +10,12 @@
        background/foreground inversion pattern (flagged inline below) — everything else here is a direct read. */
     --bg: #fafafa;
     --bg-subtle: #f5f5f5;
+    /* Translucent companion to --bg for the two sticky "glass" headers (.rc-sticky-head,
+       #rc-results-sticky-head) — a real rgba (not color-mix()) so it stays correct without depending on a
+       newer CSS color function, matching this file's own existing convention of literal per-theme hex/rgba
+       values rather than computed-from-token colors. Kept in sync with --bg's own literal value in every
+       theme block below (light here; dark via both the media-query and [data-theme] paths). */
+    --bg-glass: rgba(250, 250, 250, 0.75);
     --sidebar-bg: #fafafa;
     --sidebar-fg: #3f3f46;
     --card-bg: #fafafa;
@@ -55,7 +61,7 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
+      --bg: #171717; --bg-glass: rgba(23, 23, 23, 0.75); --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
       --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
       /* --primary/--primary-fg/--ring (dark) inferred, not directly queried: standard shadcn zinc dark-mode
          inversion (confirmed pattern here via base/background↔base/foreground flipping the same way). */
@@ -66,7 +72,7 @@
     }
   }
   :root[data-theme="dark"] {
-    --bg: #171717; --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
+    --bg: #171717; --bg-glass: rgba(23, 23, 23, 0.75); --bg-subtle: #262626; --sidebar-bg: #171717; --sidebar-fg: #cbd5e1;
     --card-bg: #262626; --fg: #fafafa; --fg-muted: #a1a1aa; --muted-bg: #262626; --border: #262626;
     --primary: #fafafa; --primary-fg: #171717; --accent: #404040; --ring: #fafafa;
     --destructive: #f87171; --destructive-bg: #2a1416; --destructive-border: #4c1d1d;
@@ -74,7 +80,7 @@
     --warning: #f0a63d; --warning-bg: #2c1f0a; --warning-border: #5a3f14;
   }
   :root[data-theme="light"] {
-    --bg: #fafafa; --bg-subtle: #f5f5f5; --sidebar-bg: #fafafa; --sidebar-fg: #3f3f46;
+    --bg: #fafafa; --bg-glass: rgba(250, 250, 250, 0.75); --bg-subtle: #f5f5f5; --sidebar-bg: #fafafa; --sidebar-fg: #3f3f46;
     --card-bg: #fafafa; --fg: #171717; --fg-muted: #737373; --muted-bg: #f5f5f5; --border: #e5e5e5;
     --primary: #171717; --primary-fg: #fafafa; --accent: #f5f5f5; --ring: #171717;
     --destructive: #ef4444; --destructive-bg: #fef2f2; --destructive-border: #fecaca;
@@ -249,10 +255,30 @@
      controls stay put; the page-head above and the chip row/table body below (all normal-flow) scroll
      underneath it. Nothing between this and the viewport sets its own overflow, so the sticky reference is
      the real page scroll. No border-bottom of its own — the column-header row now living inside it (see
-     #rc-thead-wrap below) already ends in one via thead th's own existing border-bottom. top is a small
-     positive offset (not 0), per the user — once docked it hovers with a little breathing room above it
-     instead of touching the literal edge of the viewport. */
-  .rc-sticky-head { position: sticky; top: 0.6rem; z-index: 6; background: var(--bg); }
+     #rc-thead-wrap below) already ends in one via thead th's own existing border-bottom.
+     top stays 0 (not a positive offset) so the background/glass itself reaches the literal top edge of the
+     viewport with no gap once docked — a `top: 0.6rem` would leave an un-blurred, un-tinted sliver of
+     whatever's scrolling underneath showing through above the panel, especially visible now that this has a
+     translucent backdrop-filter background (see .rc-sticky-head/#rc-results-sticky-head below). The
+     breathing room the user asked for instead comes from padding-top INSIDE this box, so the controls sit
+     lower while the panel's own surface still covers all the way to y:0. */
+  .rc-sticky-head { position: sticky; top: 0; z-index: 6; padding-top: 0.6rem; }
+  /* "Glass" background — per the user — on both sticky headers (this one and #rc-results-sticky-head
+     below): a translucent tint (--bg-glass, a real per-theme rgba companion to --bg, not computed via
+     color-mix()) plus a backdrop-filter blur, so content scrolling underneath reads as a soft frosted blur
+     through the bar rather than being fully hidden by a flat opaque fill. saturate(1.1) is the standard
+     companion filter for this exact "frosted glass" look (macOS/iOS use the same combination) — a small,
+     deliberate boost, not a typo. -webkit-backdrop-filter for Safari; the @supports fallback below keeps
+     both bars fully opaque (plain --bg, no blur) in any browser that doesn't support backdrop-filter at all,
+     since a translucent-but-unblurred bar would just look like a mistake, not a design choice. */
+  .rc-sticky-head, #rc-results-sticky-head {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .rc-sticky-head, #rc-results-sticky-head { background: var(--bg); }
+  }
   /* Clips the pinned column-header row to the visible table width and shifts it via JS
      (syncPinnedHeaderScroll()) to track table-wrap's own horizontal scroll — see the markup comment above
      #rc-thead-wrap for why this replaces a plain position:sticky thead. */
@@ -281,7 +307,7 @@
      page's own sticky bar, this one doesn't end in something with its own border (like a table header row
      does), so without this the show-card grid would scroll up flush against the controls. */
   #rc-results-sticky-head {
-    position: sticky; top: 0; z-index: 6; background: var(--bg);
+    position: sticky; top: 0; z-index: 6;
     margin: -1rem -1.2rem 0.7rem; padding: 1rem 1.2rem 0.75rem;
     border-radius: var(--radius) var(--radius) 0 0;
   }
