@@ -286,15 +286,15 @@
   .rc-thead-wrap thead th { position: static; }
   /* Overrides the global `table`/`thead th { background: var(--bg) }` rules (opaque, correct for the real
      scrolling body — see .table-wrap below — and for CPM Workspace's own tables, neither of which this
-     should touch) specifically for the pinned column-header row, so it's translucent like the rest of
-     .rc-sticky-head instead of an opaque strip sitting on top of the glass effect. No backdrop-filter of its
-     own needed — .rc-sticky-head's own blur already applies to whatever's behind IT as a whole; a
-     translucent child here just lets that already-blurred backdrop keep showing through, tinted, rather than
-     being fully covered by an opaque fill. */
-  .rc-thead-wrap table, .rc-thead-wrap thead th { background: var(--bg-glass); }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .rc-thead-wrap table, .rc-thead-wrap thead th { background: var(--bg); }
-  }
+     should touch) specifically for the pinned column-header row — fully transparent, not var(--bg-glass)
+     again. .rc-sticky-head's own glass background+blur already covers this whole block, tabbar-row and
+     thead-wrap alike; giving the header cells their OWN --bg-glass on top of that stacks two translucent
+     layers (0.75 alpha over 0.75 alpha ≈ 94% opaque combined, not ~25%), which is exactly why this row read
+     as noticeably more opaque than the rest of the bar instead of matching it — confirmed by the user. A
+     transparent child just lets the parent's single glass layer show through here too, uniformly. In the
+     @supports fallback (no backdrop-filter at all), .rc-sticky-head itself falls back to a flat opaque --bg
+     — transparent children still resolve correctly there too, showing that same flat fill through. */
+  .rc-thead-wrap table, .rc-thead-wrap thead th { background: transparent; }
   /* Real shadcn/ui Tabs (TabsList/TabsTrigger) pattern — per the user's reference screenshot, replacing the
      old underline treatment. Figma's live Tabs node wasn't directly reachable this session (its own page id
      wasn't cached and couldn't be located via search_design_system, which — per library-map.md — is already
