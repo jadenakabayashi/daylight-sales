@@ -210,7 +210,12 @@
   .page-tab-chip {
     font-size: 0.78rem; font-weight: 500; color: var(--fg-muted); cursor: pointer; white-space: nowrap;
     padding: 0.28rem 0.65rem; border: 1px solid var(--border); border-radius: 999px; background: var(--muted-bg);
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
+  /* Toggled by syncContextPill() right before/after re-parenting the chip between #page-tabs and
+     #rc-context-pill-slot — since the move itself is an instant DOM operation with no natural "from A to B"
+     animation, this fakes a soft fade+slide-in on arrival at either destination instead of an abrupt pop. */
+  .page-tab-chip.is-pill-moving { opacity: 0; transform: translateX(-6px) scale(0.96); }
   .page-tab-chip:hover { color: var(--fg); border-color: var(--fg-muted); }
   .page-tab-chip.is-active { color: var(--primary-fg); background: var(--primary); border-color: var(--primary); font-weight: 600; }
   .crumb { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.3rem; }
@@ -244,8 +249,10 @@
      controls stay put; the page-head above and the chip row/table body below (all normal-flow) scroll
      underneath it. Nothing between this and the viewport sets its own overflow, so the sticky reference is
      the real page scroll. No border-bottom of its own — the column-header row now living inside it (see
-     #rc-thead-wrap below) already ends in one via thead th's own existing border-bottom. */
-  .rc-sticky-head { position: sticky; top: 0; z-index: 6; background: var(--bg); }
+     #rc-thead-wrap below) already ends in one via thead th's own existing border-bottom. top is a small
+     positive offset (not 0), per the user — once docked it hovers with a little breathing room above it
+     instead of touching the literal edge of the viewport. */
+  .rc-sticky-head { position: sticky; top: 0.6rem; z-index: 6; background: var(--bg); }
   /* Clips the pinned column-header row to the visible table width and shifts it via JS
      (syncPinnedHeaderScroll()) to track table-wrap's own horizontal scroll — see the markup comment above
      #rc-thead-wrap for why this replaces a plain position:sticky thead. */
@@ -268,10 +275,14 @@
      margins itself out to the panel's own edges first (else it'd stick narrower than the panel, with a
      visible padding gap on both sides once docked) and re-pads internally to match. Rounds only its top
      corners to the panel's own --radius so it blends with the panel's top border at rest (unscrolled); once
-     actually stuck at viewport top, it reads the same as the Media Roster page's own sticky bar. */
+     actually stuck at viewport top, it reads the same as the Media Roster page's own sticky bar. Its own
+     padding-bottom (not just the margin-bottom below, which only affects the unscrolled/rest layout) gives
+     it real breathing room below the tabs/ToggleGroup once docked — per the user, unlike the Media Roster
+     page's own sticky bar, this one doesn't end in something with its own border (like a table header row
+     does), so without this the show-card grid would scroll up flush against the controls. */
   #rc-results-sticky-head {
     position: sticky; top: 0; z-index: 6; background: var(--bg);
-    margin: -1rem -1.2rem 0.7rem; padding: 1rem 1.2rem 0;
+    margin: -1rem -1.2rem 0.7rem; padding: 1rem 1.2rem 0.75rem;
     border-radius: var(--radius) var(--radius) 0 0;
   }
   /* Holds the (real, reparented, not cloned) .page-tab-chip once syncContextPill() moves it in here — see
@@ -7537,8 +7548,21 @@ function syncContextPill(){
      padding), stickyHead can only reach top:0 once page-head has already scrolled further up than that —
      it's guaranteed already hidden by this point, not just "about to be." */
   const shouldDock = onResultsView && stickyHead.getBoundingClientRect().top <= 0;
-  if (shouldDock && chip.parentElement !== slot) slot.appendChild(chip);
-  else if (!shouldDock && chip.parentElement !== pageTabs) pageTabs.appendChild(chip);
+  if (shouldDock && chip.parentElement !== slot) movePillTo(chip, slot);
+  else if (!shouldDock && chip.parentElement !== pageTabs) movePillTo(chip, pageTabs);
+}
+/* Fakes a soft fade+slide-in for the chip's move between #page-tabs and #rc-context-pill-slot — plain
+   re-parenting has no natural transition of its own, so this sets the "before" (offset/transparent) state,
+   moves the node, forces a synchronous reflow (the `void chip.offsetHeight` read), then clears the state —
+   the forced reflow is what makes the browser actually commit/observe the "before" style before the
+   class comes off, so the change still reads as a real transition instead of being coalesced away. The
+   classic cross-browser way to do this; more reliable here than a requestAnimationFrame callback, which
+   this environment doesn't reliably fire in. */
+function movePillTo(chip, target){
+  chip.classList.add("is-pill-moving");
+  target.appendChild(chip);
+  void chip.offsetHeight;
+  chip.classList.remove("is-pill-moving");
 }
 window.addEventListener("scroll", syncContextPill, {passive: true});
 /* Reopens the modal on the RFP Response step with the ACTIVE card's own form values restored (unlike
