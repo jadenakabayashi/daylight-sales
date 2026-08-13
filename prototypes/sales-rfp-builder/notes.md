@@ -100,7 +100,8 @@ v15 — added a **View ▾** toolbar control ("Edit Columns") per the user's ref
 
 ## Status
 
-- **Published artifact**: https://claude.ai/code/artifact/00b9bd33-efb0-4287-a28d-11b6d87ee8b0 (republish with this same `url` on the Artifact tool call to keep the link stable).
+- **Published artifact**: https://claude.ai/code/artifact/00b9bd33-efb0-4287-a28d-11b6d87ee8b0 (republish with this same `url` on the Artifact tool call to keep the link stable) — this is the combined build, published from the `sales-data` branch (includes CPM Workspace).
+- **`rate-card-header-updates` branch's own separate artifact**: https://claude.ai/code/artifact/823ce19e-3147-4e0e-bd42-445fe72dab67 — deliberately a different link (not the one above), per the user, since this branch exists specifically to stay isolated from the CPM Workspace work for merging into a different project. Republish via that same file's own path (a copy under the session scratchpad, not `prototypes/sales-rfp-builder/prototype.html` directly — publishing the real path from this repo would instead update the URL above, since that's the path this session already published from) to keep this second link stable.
 
 ## What this is
 
