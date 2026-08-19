@@ -106,22 +106,32 @@
   .app { display: flex; min-height: 100vh; }
 
   /* ---------------- Modal ---------------- */
+  /* Per the user: the modal's scrollable content must not flow outside its header/footer. Previously the
+     OVERLAY itself scrolled (overflow-y:auto here) with .modal-head/.sticky-cta-row only position:sticky
+     within that overlay-wide scrollport — meaning the actual clipping boundary was the whole viewport, not
+     the modal panel's own box; a header/footer that merely "stick" inside a too-large scroll area isn't the
+     same as content being genuininely contained within them. Real fix: the PANEL is now the bounded box
+     (max-height, flex column) and only .modal-body scrolls inside it — .modal-head/.sticky-cta-row are plain
+     flex:none siblings above/below that scrolling area, not scroll-relative positioned elements, so content
+     can never render past them regardless of scroll position. The overlay no longer needs to scroll at all
+     (removed overflow-y:auto) since the panel can no longer exceed the viewport. align-items switched
+     flex-start → center — a fixed-max-height panel reads better vertically centered than pinned near the
+     top with a variable gap below it once its content is short enough not to need the full height. */
   .modal-overlay {
     position: fixed; inset: 0; z-index: 50;
     background: rgba(2, 8, 23, 0.6);
-    display: none; align-items: flex-start; justify-content: center;
+    display: none; align-items: center; justify-content: center;
     padding: 4vh 1.5rem;
-    overflow-y: auto;
   }
   .modal-overlay.is-open { display: flex; }
   .modal-panel {
     background: var(--bg); border: 1px solid var(--border); border-radius: calc(var(--radius) + 0.2rem);
     width: min(920px, 100%);
     box-shadow: 0 24px 64px rgba(0,0,0,0.45);
-    margin-bottom: 4vh;
+    display: flex; flex-direction: column; max-height: 92vh;
   }
   .modal-head {
-    position: sticky; top: 0; z-index: 2; background: var(--bg);
+    flex: none; z-index: 2; background: var(--bg);
     display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
     padding: 1.1rem 1.5rem 0.9rem; border-bottom: 1px solid var(--border);
     border-radius: calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem) 0 0;
@@ -133,7 +143,17 @@
     display: flex; align-items: center; justify-content: center;
   }
   .modal-close:hover { background: var(--muted-bg); color: var(--fg); }
-  .modal-body { padding: 1.4rem 1.5rem 1.7rem; }
+  /* flex:1/min-height:0 is what actually makes this the ONE scrolling region within the now-bounded panel —
+     min-height:0 overrides flex's default min-height:auto, which would otherwise let this box grow to fit
+     its content instead of shrinking to the space .modal-head/.sticky-cta-row leave it, defeating the whole
+     fix (the classic flexbox-scroll-child gotcha). */
+  .modal-body { flex: 1; min-height: 0; overflow-y: auto; padding: 1.4rem 1.5rem 1.7rem; }
+  /* Inside the modal specifically, per the user: the footer's actions sit at the bottom RIGHT, not left —
+     .sticky-cta-row's own base rule (no justify-content, so flex-start) stays the default for its OTHER use
+     (#cta-row on the results page, outside any modal, unaffected by this modal-scoped override) — "← Back"
+     and the primary action end up adjacent at the right edge, in their existing DOM order, matching the
+     standard secondary-then-primary footer-button convention. */
+  #rfp-modal .sticky-cta-row { justify-content: flex-end; }
   @media (prefers-reduced-motion: no-preference) {
     .modal-panel { animation: modal-in 0.16s ease-out; }
   }
