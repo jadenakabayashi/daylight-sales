@@ -859,16 +859,24 @@
 
   /* Shared by #cta-row (page-level RFP results view) and #rfp-response-actions (modal's RFP Response step) —
      both screens can run taller than one viewport, so per the user their bottom action row should stay
-     visible while scrolling rather than requiring a scroll-to-the-very-end to find it. position:sticky
-     (not fixed) is what gives the "or stick to the bottom of the content if it ends before the fold" half
-     for free: once the row's own containing block's end is reached, it just settles into place there
-     instead of floating disconnected over empty space — no JS/scroll-listener needed either way. Negative
-     margins cancel each container's own padding so the sticky background paints full-bleed edge-to-edge
-     (otherwise scrolling content would visibly peek out past the bar on both sides); the matching padding
-     put back keeps the buttons themselves inset the same as before. */
+     visible while scrolling rather than requiring a scroll-to-the-very-end to find it. #cta-row still relies
+     on .sticky-cta-row's own position:sticky;bottom:0 — it lives inside .screen-contained, an ordinary
+     padded block with real page-level scroll behind it, where sticky behaves correctly; its negative margin
+     cancels .screen-contained's own padding (1rem 1.2rem 1.3rem) so the sticky background paints full-bleed
+     edge-to-edge instead of leaving a gap on both sides, with matching padding put back to keep the buttons
+     themselves inset the same as before. #rfp-response-actions does NOT use that pattern — inside the modal
+     it's a genuine flex:none sibling (position:static, see #rfp-modal .sticky-cta-row above) of a FULL-WIDTH,
+     unpadded parent (#step-response's own flex column — padding now lives on .rfp-step-scroll instead, not
+     .modal-body), so there's no ancestor padding left to cancel; the old negative-margin version of this
+     rule (written back when .modal-body itself carried that padding directly) was bleeding it past the
+     unpadded parent's edges instead, extending past the modal panel's own sides entirely. Just plain padding
+     now, sized to match .rfp-step-scroll's own 1.5rem side inset so the buttons align with the card content
+     above them; border-radius on the bottom corners only stays since .modal-panel has no overflow:hidden of
+     its own — this footer sits flush against the panel's own rounded bottom edge and needs to round to match
+     it, the same reasoning .modal-head already follows for the top corners. */
   .sticky-cta-row { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-start; background: var(--bg); border-top: 1px solid var(--border); }
   #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); }
-  #rfp-response-actions { margin: 0.4rem -1.5rem -1.7rem; padding: 0.85rem 1.5rem 1.7rem; border-radius: 0 0 calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem); }
+  #rfp-response-actions { padding: 0.85rem 1.5rem 1.4rem; border-radius: 0 0 calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem); }
   .cta-primary-group { display: flex; flex-direction: column; gap: 0.3rem; }
   .cta-assist { font-size: 0.74rem; color: var(--fg-muted); }
   .cta-assist b { color: var(--fg); font-variant-numeric: tabular-nums; }
