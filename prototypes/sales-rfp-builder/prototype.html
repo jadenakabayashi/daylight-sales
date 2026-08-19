@@ -875,7 +875,10 @@
      its own — this footer sits flush against the panel's own rounded bottom edge and needs to round to match
      it, the same reasoning .modal-head already follows for the top corners. */
   .sticky-cta-row { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-start; background: var(--bg); border-top: 1px solid var(--border); }
-  #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); }
+  /* Per the user, right-aligned like the modal's own footer (#rfp-modal .sticky-cta-row above) — "← Back to
+     RFP Response" ends up immediately left of the primary group, both at the right edge, in their existing
+     DOM order, same secondary-then-primary convention. */
+  #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); justify-content: flex-end; }
   #rfp-response-actions { padding: 0.85rem 1.5rem 1.4rem; border-radius: 0 0 calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem); }
   .cta-primary-group { display: flex; flex-direction: column; gap: 0.3rem; }
   .cta-assist { font-size: 0.74rem; color: var(--fg-muted); }
