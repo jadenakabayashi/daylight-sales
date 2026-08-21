@@ -847,11 +847,9 @@
 
   .empty-note { color: var(--fg-muted); font-size: 0.85rem; padding: 1rem 0; }
 
-  /* ----- proposal bar & overrides ----- */
-  .proposal-bar { border: 1px solid var(--border); background: var(--bg-subtle); border-radius: var(--radius); padding: 0.55rem 0.8rem; font-size: 0.83rem; }
-  .proposal-summary { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  /* ----- proposal summary & overrides ----- */
+  .proposal-summary { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.83rem; }
   .proposal-summary b { font-variant-numeric: tabular-nums; }
-  .proposal-hint { color: var(--fg-muted); font-size: 0.74rem; margin-top: 0.3rem; }
   .pill { display: inline-flex; align-items: center; gap: 0.3rem; border-radius: 999px; padding: 0.18rem 0.6rem; font-size: 0.76rem; }
   .pill.approved { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
   .pill.unvetted { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
@@ -875,10 +873,13 @@
      its own — this footer sits flush against the panel's own rounded bottom edge and needs to round to match
      it, the same reasoning .modal-head already follows for the top corners. */
   .sticky-cta-row { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-start; background: var(--bg); border-top: 1px solid var(--border); }
-  /* Per the user, right-aligned like the modal's own footer (#rfp-modal .sticky-cta-row above) — "← Back to
-     RFP Response" ends up immediately left of the primary group, both at the right edge, in their existing
-     DOM order, same secondary-then-primary convention. */
-  #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); justify-content: flex-end; }
+  /* Per the user, the proposal summary now lives directly in this bar (left side) instead of its own card
+     above it, with the actions grouped in .cta-actions on the right — justify-content:space-between splits
+     those two, rather than the modal footer's own flex-end (nothing else competes for space over there).
+     "← Back to RFP Response" still sits immediately left of the primary group within .cta-actions, same
+     secondary-then-primary convention. */
+  #cta-row { margin: 1rem -1.2rem -1.3rem; padding: 0.85rem 1.2rem 1.3rem; border-radius: 0 0 var(--radius) var(--radius); justify-content: space-between; }
+  .cta-actions { display: flex; align-items: flex-start; gap: 0.6rem; flex-wrap: wrap; }
   #rfp-response-actions { padding: 0.85rem 1.5rem 1.4rem; border-radius: 0 0 calc(var(--radius) + 0.2rem) calc(var(--radius) + 0.2rem); }
   .cta-primary-group { display: flex; flex-direction: column; gap: 0.3rem; }
   .cta-assist { font-size: 0.74rem; color: var(--fg-muted); }
@@ -1158,21 +1159,24 @@
           <div class="result-panel" id="panel-filtered"><div class="filtered-list"></div></div>
           <div class="result-panel" id="panel-manual"><div class="result-grid"></div></div>
 
-          <div class="proposal-bar" id="proposal-bar">
+          <!-- Per the user: the proposal summary (count + approved/unvetted/removed pills) moved into the
+               sticky CTA bar itself instead of its own card above it — sits on the left, opposite the
+               right-aligned actions (.cta-row now justify-content:space-between, with .cta-actions grouping
+               Back+primary together as the one thing anchored to the right). The old add/remove instructional
+               copy (.proposal-hint — "Use 'Remove' on a card...") is dropped entirely, not relocated. -->
+          <div id="cta-row" class="sticky-cta-row">
             <div class="proposal-summary">
               <b id="prop-total">0</b> shows in this proposal to <b id="prop-agency">the agency</b> —
               <span class="pill approved"><b id="prop-approved">0</b> already approved</span>
               <span class="pill unvetted"><b id="prop-unvetted">0</b> not yet vetted with the show</span>
               <span class="pill removed" id="prop-removed-pill"><b id="prop-removed">0</b> removed by you</span>
             </div>
-            <div class="proposal-hint">Use “Remove” on a card to leave it out, or “Include anyway” on an eliminated show to override the system and send it for vetting too.</div>
-          </div>
-
-          <div id="cta-row" class="sticky-cta-row">
-            <button class="btn" onclick="editCurrentRfp()">← Back to RFP Response</button>
-            <div class="cta-primary-group">
-              <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Build RFP →</button>
-              <div class="cta-assist">Also sends <b id="send-count">0</b> unvetted shows to Ad Ops.</div>
+            <div class="cta-actions">
+              <button class="btn" onclick="editCurrentRfp()">← Back to RFP Response</button>
+              <div class="cta-primary-group">
+                <button class="btn primary big" id="btn-send-adops" onclick="sendToAdOps()">Build RFP →</button>
+                <div class="cta-assist">Also sends <b id="send-count">0</b> unvetted shows to Ad Ops.</div>
+              </div>
             </div>
           </div>
 
